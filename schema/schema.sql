@@ -21,6 +21,10 @@ CREATE TABLE store_owners (
     is_verified  BOOLEAN DEFAULT FALSE
 );
 
+CREATE TABLE admins (
+    account_id INT PRIMARY KEY REFERENCES accounts(account_id)
+);
+
 CREATE TABLE items (
     item_id      SERIAL PRIMARY KEY,
     item_name    VARCHAR(255) NOT NULL,
@@ -60,9 +64,14 @@ CREATE TABLE cart_items (
 CREATE TABLE reports (
     report_id           SERIAL PRIMARY KEY,
     reporter_account_id INT REFERENCES accounts(account_id),
-    flagged_item_id     INT REFERENCES items(item_id),
+    price_entry_id      INT REFERENCES price_entries(entry_id),
     reason_for_report   TEXT,
     report_timestamp    TIMESTAMP DEFAULT NOW(),
     resolution_status   VARCHAR(50) DEFAULT 'open' -- 'open', 'resolved', 'dismissed'
 );
 
+CREATE TABLE admin_reports (
+    admin_account_id INT REFERENCES admins(account_id),
+    report_id        INT REFERENCES reports(report_id),
+    PRIMARY KEY (admin_account_id, report_id)
+);
