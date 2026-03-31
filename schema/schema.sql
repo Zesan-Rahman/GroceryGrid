@@ -1,5 +1,3 @@
-CREATE DATABASE main;
-
 CREATE TABLE accounts (
     account_id   SERIAL PRIMARY KEY,
     email        VARCHAR(255) UNIQUE NOT NULL,
@@ -35,9 +33,9 @@ CREATE TABLE receipts (
     receipt_id       SERIAL PRIMARY KEY,
     store_id         INT REFERENCES stores(store_id),
     user_id          INT REFERENCES accounts(account_id),
-    raw_image_file   TEXT, --URL?
+    raw_image_file   TEXT,
     upload_timestamp TIMESTAMP DEFAULT NOW(),
-    trust_status VARCHAR(50) DEFAULT 'safe' -- 'safe', 'flagged' 
+    trust_status     VARCHAR(50) DEFAULT 'safe'
 );
 
 CREATE TABLE price_entries (
@@ -47,7 +45,7 @@ CREATE TABLE price_entries (
     receipt_id   INT REFERENCES receipts(receipt_id),
     logged_price DECIMAL(10, 2) NOT NULL,
     upload_date  TIMESTAMP DEFAULT NOW(),
-    price_date   DATE,
+    price_date   DATE
 );
 
 CREATE TABLE carts (
@@ -67,7 +65,7 @@ CREATE TABLE reports (
     price_entry_id      INT REFERENCES price_entries(entry_id),
     reason_for_report   TEXT,
     report_timestamp    TIMESTAMP DEFAULT NOW(),
-    resolution_status   VARCHAR(50) DEFAULT 'open' -- 'open', 'resolved', 'dismissed'
+    resolution_status   VARCHAR(50) DEFAULT 'open'
 );
 
 CREATE TABLE admin_reports (
