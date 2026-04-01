@@ -40,5 +40,8 @@
 # debug information files
 *.dwo
 
+# environment file
+.env
+
 # Drogon stuff
 model.json
