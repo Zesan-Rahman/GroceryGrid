@@ -8,6 +8,9 @@ You will need:
 - PostgreSQL 14 or later
 - The `schema.sql` file from the `schema/` folder of this repo
 - The `model.json` file from the `model/` folder of this repo
+- You may also need to manually change `config.json` to contain
+the database name, user, and password for this to properly work. Might
+be best to pull these values from a .env file or something.
 - `psql` command line tool (installed alongside PostgreSQL)
 - Install PostgreSQL before building drogon. If drogon was installed
 before, rebuild it
