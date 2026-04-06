@@ -119,6 +119,21 @@ void sendJson(const CallbackPtr &callback,
     (*callback)(response);
 }
 
+bool requireSession(const HttpRequestPtr &req, const CallbackPtr &callback)
+{
+    if (req->session())
+    {
+        return true;
+    }
+
+    Json::Value body;
+    body["success"] = false;
+    body["message"] =
+        "Session support is disabled. Set app.enable_session to true in config.json";
+    sendJson(callback, drogon::k500InternalServerError, std::move(body));
+    return false;
+}
+
 Json::Value userJson(int accountId,
                      const std::string &name,
                      const std::string &email,
@@ -309,6 +324,15 @@ void AuthController::login(const HttpRequestPtr &req, Callback &&callback) const
             const auto displayName =
                 row["name"].isNull() ? std::string() : row["name"].as<std::string>();
             auto session = req->session();
+            if (!session)
+            {
+                Json::Value body;
+                body["success"] = false;
+                body["message"] =
+                    "Session support is disabled. Set app.enable_session to true in config.json";
+                sendJson(callbackPtr, drogon::k500InternalServerError, std::move(body));
+                return;
+            }
             session->insert("account_id", row["account_id"].as<int>());
             session->insert("name", displayName);
             session->insert("email", row["email"].as<std::string>());
@@ -336,6 +360,10 @@ void AuthController::login(const HttpRequestPtr &req, Callback &&callback) const
 void AuthController::me(const HttpRequestPtr &req, Callback &&callback) const
 {
     auto callbackPtr = std::make_shared<Callback>(std::move(callback));
+    if (!requireSession(req, callbackPtr))
+    {
+        return;
+    }
     auto session = req->session();
     const auto accountId = session->getOptional<int>("account_id");
     const auto name = session->getOptional<std::string>("name");
@@ -360,6 +388,10 @@ void AuthController::me(const HttpRequestPtr &req, Callback &&callback) const
 void AuthController::logout(const HttpRequestPtr &req, Callback &&callback) const
 {
     auto callbackPtr = std::make_shared<Callback>(std::move(callback));
+    if (!requireSession(req, callbackPtr))
+    {
+        return;
+    }
     auto session = req->session();
     session->clear();
 
