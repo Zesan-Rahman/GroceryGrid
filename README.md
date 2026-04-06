@@ -97,13 +97,27 @@ The minimum required fields are:
 
 `config.json` should stay local and should not be committed.
 
+For this project, auth depends on Drogon sessions, so `app.enable_session` must be enabled:
+
+```json
+{
+  "app": {
+    "enable_session": true
+  }
+}
+```
+
+If `enable_session` is left at Drogon's default `false`, the frontend's first `/api/auth/me` request will fail and login/logout session handling will not work.
+
 ## 3. Build and run the backend
 
 From the repo root:
 
 ```bash
+mkdir build
 cd build
 cmake ..
+make
 ./build/GroceryGrid
 ```
 
