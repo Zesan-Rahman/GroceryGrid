@@ -24,28 +24,26 @@ const NAV_LINKS: NavLink[] = [
 const COMPANY_NAME = "GroceryGrid";
 
 const ABOUT_DESCRIPTION = `
-  Replace this with a paragraph or two describing your company — your mission,
-  what you do, who you serve, and what makes you unique.
+GroceryGrid is intended to accomplish goal 2 of the Sustainable Project Goals by the United Nations: End hunger, achieve food security and improved nutrition and promote sustainable agriculture. We want to help users plan cost-efficient routes for their groceries and share these routes with others. GroceryGrid also recognizes that quality matters, and allows users to share what stores sell what items and how great those items are. Through our app, we hope to help all kinds of users and create a welcoming environment for all of us.
 `;
 
 const TEAM_MEMBERS: TeamMember[] = [
   {
-    name: "Jane Doe",
-    role: "CEO & Co-Founder",
-    bio: "Brief bio about Jane — her background, expertise, and passion.",
-    avatarUrl: "", // e.g. "/images/jane.jpg"
+    name: "Jing Qian",
+    // bio: ,
   },
   {
-    name: "John Smith",
-    role: "CTO & Co-Founder",
-    bio: "Brief bio about John — his background, expertise, and passion.",
-    avatarUrl: "",
+    name: "Zesan Rahman",
+    // bio: ,
+  },
+  {
+    name: "Ivan Yeung",
+    // bio: ,
   },
 ];
 
-const FOUNDED_YEAR = "20XX";
-const LOCATION = "City, State / Country";
-const CONTACT_EMAIL = "hello@yourcompany.com";
+const FOUNDED_YEAR = "2026";
+const CONTACT_EMAIL = "GroceryGrid@gmail.com"; //Filler
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -69,7 +67,6 @@ const Navbar: React.FC = () => {
 const HeroSection: React.FC = () => (
   <section style={styles.hero}>
     <h1 style={styles.heroTitle}>{COMPANY_NAME}</h1>
-    <p style={styles.heroTagline}>{COMPANY_TAGLINE}</p>
   </section>
 );
 
@@ -89,10 +86,6 @@ const StatsSection: React.FC = () => (
     <div style={styles.statCard}>
       <span style={styles.statNumber}>{TEAM_MEMBERS.length}+</span>
       <span style={styles.statLabel}>Team Members</span>
-    </div>
-    <div style={styles.statCard}>
-      <span style={styles.statNumber}>📍</span>
-      <span style={styles.statLabel}>{LOCATION}</span>
     </div>
   </section>
 );
@@ -154,8 +147,6 @@ const AboutUs: React.FC = () => {
 export default AboutUs;
 
 // ─── Inline Styles ────────────────────────────────────────────────────────────
-// Feel free to replace these with Tailwind classes, CSS modules, or
-// a styled-components / emotion setup that matches your project.
 
 const styles: Record<string, React.CSSProperties> = {
   /* Layout */
