@@ -224,11 +224,14 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "1.6rem",
     marginBottom: "1rem",
     fontWeight: "600",
+    textAlign: "center",
   },
   sectionText: {
     lineHeight: "1.8",
     color: "#444",
     maxWidth: "680px",
+    margin: "0 auto",
+    textAlign: "center",
   },
 
   /* Stats */
@@ -236,6 +239,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     gap: "2rem",
     flexWrap: "wrap",
+    justifyContent: "center",
+    textAlign: "center",
   },
   statCard: {
     display: "flex",
