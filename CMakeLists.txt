@@ -73,3 +73,5 @@ target_sources(${PROJECT_NAME}
 # ##############################################################################
 
 add_subdirectory(test)
+find_package(nlohmann_json REQUIRED)
+target_link_libraries(${PROJECT_NAME} CURL::libcurl nlohmann_json::nlohmann_json)
