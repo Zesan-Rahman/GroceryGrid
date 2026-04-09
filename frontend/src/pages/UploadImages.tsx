@@ -26,6 +26,27 @@ const UploadImages: React.FC = () => {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleUpload = async () => {
+    if (images.length === 0) return;
+
+    const formData = new FormData();
+    images.forEach((img) => formData.append("images", img.file));
+
+    try {
+        const response = await fetch("http://localhost:8080/api/upload", {
+            method: "POST",
+            body: formData,
+        });
+        if (response.ok) {
+            console.log("Upload successful");
+        } else {
+            console.error("Upload failed");
+        }
+    } catch (error) {
+        console.error("Error uploading images:", error);
+    }
+  };
+
   return (
   <div className="page">
     <h1 className="title">Upload Images</h1>
@@ -40,6 +61,10 @@ const UploadImages: React.FC = () => {
       />
       <span className="uploadText">Click to select images</span>
     </label>
+
+    <button onClick={handleUpload} className="uploadBtn">
+        Upload
+    </button>
 
     {images.length > 0 && (
       <div className="previewGrid">
