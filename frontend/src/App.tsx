@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { logout, me, type AuthUser } from "./api/auth";
+import { prefetchStores } from "./api/stores";
 import AdminHome from "./pages/AdminHome";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
@@ -11,6 +12,7 @@ import Contribute from "./pages/Contribute";
 import Login from "./pages/Login";
 import MyStorePage from "./pages/MyStorePage";
 import Register from "./pages/Register";
+import StoreCatalogPage from "./pages/StoreCatalogPage";
 import StoreOwnerHome from "./pages/StoreOwnerHome";
 import UserHome from "./pages/UserHome";
 import { roleHomePath } from "./utils/routes";
@@ -77,6 +79,14 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (user?.role === "user" || user?.role === "store_owner") {
+      void prefetchStores().catch(() => {
+        // StoreMap handles the visible error state if this request fails.
+      });
+    }
+  }, [user]);
+
   function handleLogin(nextUser: AuthUser) {
     setUser(nextUser);
     saveUser(nextUser);
@@ -139,6 +149,7 @@ export default function App() {
         <Route element={<ProtectedRoute user={user} allowedRoles={["user"]} />}>
           <Route path="/user/home" element={<UserHome user={user} />} />
           <Route path="/contribute" element={<Contribute />} />
+          <Route path="/stores/:storeId/catalog" element={<StoreCatalogPage />} />
         </Route>
 
         <Route
@@ -146,6 +157,7 @@ export default function App() {
         >
           <Route path="/store/home" element={<StoreOwnerHome user={user} />} />
           <Route path="/store/page" element={<MyStorePage />} />
+          <Route path="/stores/:storeId/catalog" element={<StoreCatalogPage />} />
         </Route>
 
         <Route element={<ProtectedRoute user={user} allowedRoles={["admin"]} />}>
