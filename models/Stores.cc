@@ -15,7 +15,15 @@ using namespace drogon_model::main;
 
 const std::string Stores::Cols::_store_id = "\"store_id\"";
 const std::string Stores::Cols::_name = "\"name\"";
-const std::string Stores::Cols::_location = "\"location\"";
+const std::string Stores::Cols::_address = "\"address\"";
+const std::string Stores::Cols::_latitude = "\"latitude\"";
+const std::string Stores::Cols::_longitude = "\"longitude\"";
+const std::string Stores::Cols::_phone = "\"phone\"";
+const std::string Stores::Cols::_website = "\"website\"";
+const std::string Stores::Cols::_hours = "\"hours\"";
+const std::string Stores::Cols::_parking = "\"parking\"";
+const std::string Stores::Cols::_created_at = "\"created_at\"";
+const std::string Stores::Cols::_updated_at = "\"updated_at\"";
 const std::string Stores::primaryKeyName = "store_id";
 const bool Stores::hasPrimaryKey = true;
 const std::string Stores::tableName = "\"stores\"";
@@ -23,7 +31,15 @@ const std::string Stores::tableName = "\"stores\"";
 const std::vector<typename Stores::MetaData> Stores::metaData_={
 {"store_id","int32_t","integer",4,1,1,1},
 {"name","std::string","character varying",255,0,0,1},
-{"location","std::string","character varying",255,0,0,0}
+{"address","std::string","character varying",255,0,0,1},
+{"latitude","std::string","numeric",0,0,0,1},
+{"longitude","std::string","numeric",0,0,0,1},
+{"phone","std::string","character varying",20,0,0,0},
+{"website","std::string","character varying",255,0,0,0},
+{"hours","std::string","jsonb",0,0,0,0},
+{"parking","std::string","character varying",50,0,0,0},
+{"created_at","::trantor::Date","timestamp without time zone",0,0,0,1},
+{"updated_at","::trantor::Date","timestamp without time zone",0,0,0,1}
 };
 const std::string &Stores::getColumnName(size_t index) noexcept(false)
 {
@@ -42,15 +58,83 @@ Stores::Stores(const Row &r, const ssize_t indexOffset) noexcept
         {
             name_=std::make_shared<std::string>(r["name"].as<std::string>());
         }
-        if(!r["location"].isNull())
+        if(!r["address"].isNull())
         {
-            location_=std::make_shared<std::string>(r["location"].as<std::string>());
+            address_=std::make_shared<std::string>(r["address"].as<std::string>());
+        }
+        if(!r["latitude"].isNull())
+        {
+            latitude_=std::make_shared<std::string>(r["latitude"].as<std::string>());
+        }
+        if(!r["longitude"].isNull())
+        {
+            longitude_=std::make_shared<std::string>(r["longitude"].as<std::string>());
+        }
+        if(!r["phone"].isNull())
+        {
+            phone_=std::make_shared<std::string>(r["phone"].as<std::string>());
+        }
+        if(!r["website"].isNull())
+        {
+            website_=std::make_shared<std::string>(r["website"].as<std::string>());
+        }
+        if(!r["hours"].isNull())
+        {
+            hours_=std::make_shared<std::string>(r["hours"].as<std::string>());
+        }
+        if(!r["parking"].isNull())
+        {
+            parking_=std::make_shared<std::string>(r["parking"].as<std::string>());
+        }
+        if(!r["created_at"].isNull())
+        {
+            auto timeStr = r["created_at"].as<std::string>();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
+        }
+        if(!r["updated_at"].isNull())
+        {
+            auto timeStr = r["updated_at"].as<std::string>();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                updatedAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
         }
     }
     else
     {
         size_t offset = (size_t)indexOffset;
-        if(offset + 3 > r.size())
+        if(offset + 11 > r.size())
         {
             LOG_FATAL << "Invalid SQL result for this model";
             return;
@@ -69,7 +153,83 @@ Stores::Stores(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 2;
         if(!r[index].isNull())
         {
-            location_=std::make_shared<std::string>(r[index].as<std::string>());
+            address_=std::make_shared<std::string>(r[index].as<std::string>());
+        }
+        index = offset + 3;
+        if(!r[index].isNull())
+        {
+            latitude_=std::make_shared<std::string>(r[index].as<std::string>());
+        }
+        index = offset + 4;
+        if(!r[index].isNull())
+        {
+            longitude_=std::make_shared<std::string>(r[index].as<std::string>());
+        }
+        index = offset + 5;
+        if(!r[index].isNull())
+        {
+            phone_=std::make_shared<std::string>(r[index].as<std::string>());
+        }
+        index = offset + 6;
+        if(!r[index].isNull())
+        {
+            website_=std::make_shared<std::string>(r[index].as<std::string>());
+        }
+        index = offset + 7;
+        if(!r[index].isNull())
+        {
+            hours_=std::make_shared<std::string>(r[index].as<std::string>());
+        }
+        index = offset + 8;
+        if(!r[index].isNull())
+        {
+            parking_=std::make_shared<std::string>(r[index].as<std::string>());
+        }
+        index = offset + 9;
+        if(!r[index].isNull())
+        {
+            auto timeStr = r[index].as<std::string>();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
+        }
+        index = offset + 10;
+        if(!r[index].isNull())
+        {
+            auto timeStr = r[index].as<std::string>();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                updatedAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
         }
     }
 
@@ -77,7 +237,7 @@ Stores::Stores(const Row &r, const ssize_t indexOffset) noexcept
 
 Stores::Stores(const Json::Value &pJson, const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 3)
+    if(pMasqueradingVector.size() != 11)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -103,7 +263,107 @@ Stores::Stores(const Json::Value &pJson, const std::vector<std::string> &pMasque
         dirtyFlag_[2] = true;
         if(!pJson[pMasqueradingVector[2]].isNull())
         {
-            location_=std::make_shared<std::string>(pJson[pMasqueradingVector[2]].asString());
+            address_=std::make_shared<std::string>(pJson[pMasqueradingVector[2]].asString());
+        }
+    }
+    if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
+    {
+        dirtyFlag_[3] = true;
+        if(!pJson[pMasqueradingVector[3]].isNull())
+        {
+            latitude_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
+        }
+    }
+    if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
+    {
+        dirtyFlag_[4] = true;
+        if(!pJson[pMasqueradingVector[4]].isNull())
+        {
+            longitude_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
+        }
+    }
+    if(!pMasqueradingVector[5].empty() && pJson.isMember(pMasqueradingVector[5]))
+    {
+        dirtyFlag_[5] = true;
+        if(!pJson[pMasqueradingVector[5]].isNull())
+        {
+            phone_=std::make_shared<std::string>(pJson[pMasqueradingVector[5]].asString());
+        }
+    }
+    if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
+    {
+        dirtyFlag_[6] = true;
+        if(!pJson[pMasqueradingVector[6]].isNull())
+        {
+            website_=std::make_shared<std::string>(pJson[pMasqueradingVector[6]].asString());
+        }
+    }
+    if(!pMasqueradingVector[7].empty() && pJson.isMember(pMasqueradingVector[7]))
+    {
+        dirtyFlag_[7] = true;
+        if(!pJson[pMasqueradingVector[7]].isNull())
+        {
+            hours_=std::make_shared<std::string>(pJson[pMasqueradingVector[7]].asString());
+        }
+    }
+    if(!pMasqueradingVector[8].empty() && pJson.isMember(pMasqueradingVector[8]))
+    {
+        dirtyFlag_[8] = true;
+        if(!pJson[pMasqueradingVector[8]].isNull())
+        {
+            parking_=std::make_shared<std::string>(pJson[pMasqueradingVector[8]].asString());
+        }
+    }
+    if(!pMasqueradingVector[9].empty() && pJson.isMember(pMasqueradingVector[9]))
+    {
+        dirtyFlag_[9] = true;
+        if(!pJson[pMasqueradingVector[9]].isNull())
+        {
+            auto timeStr = pJson[pMasqueradingVector[9]].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
+        }
+    }
+    if(!pMasqueradingVector[10].empty() && pJson.isMember(pMasqueradingVector[10]))
+    {
+        dirtyFlag_[10] = true;
+        if(!pJson[pMasqueradingVector[10]].isNull())
+        {
+            auto timeStr = pJson[pMasqueradingVector[10]].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                updatedAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
         }
     }
 }
@@ -126,12 +386,112 @@ Stores::Stores(const Json::Value &pJson) noexcept(false)
             name_=std::make_shared<std::string>(pJson["name"].asString());
         }
     }
-    if(pJson.isMember("location"))
+    if(pJson.isMember("address"))
     {
         dirtyFlag_[2]=true;
-        if(!pJson["location"].isNull())
+        if(!pJson["address"].isNull())
         {
-            location_=std::make_shared<std::string>(pJson["location"].asString());
+            address_=std::make_shared<std::string>(pJson["address"].asString());
+        }
+    }
+    if(pJson.isMember("latitude"))
+    {
+        dirtyFlag_[3]=true;
+        if(!pJson["latitude"].isNull())
+        {
+            latitude_=std::make_shared<std::string>(pJson["latitude"].asString());
+        }
+    }
+    if(pJson.isMember("longitude"))
+    {
+        dirtyFlag_[4]=true;
+        if(!pJson["longitude"].isNull())
+        {
+            longitude_=std::make_shared<std::string>(pJson["longitude"].asString());
+        }
+    }
+    if(pJson.isMember("phone"))
+    {
+        dirtyFlag_[5]=true;
+        if(!pJson["phone"].isNull())
+        {
+            phone_=std::make_shared<std::string>(pJson["phone"].asString());
+        }
+    }
+    if(pJson.isMember("website"))
+    {
+        dirtyFlag_[6]=true;
+        if(!pJson["website"].isNull())
+        {
+            website_=std::make_shared<std::string>(pJson["website"].asString());
+        }
+    }
+    if(pJson.isMember("hours"))
+    {
+        dirtyFlag_[7]=true;
+        if(!pJson["hours"].isNull())
+        {
+            hours_=std::make_shared<std::string>(pJson["hours"].asString());
+        }
+    }
+    if(pJson.isMember("parking"))
+    {
+        dirtyFlag_[8]=true;
+        if(!pJson["parking"].isNull())
+        {
+            parking_=std::make_shared<std::string>(pJson["parking"].asString());
+        }
+    }
+    if(pJson.isMember("created_at"))
+    {
+        dirtyFlag_[9]=true;
+        if(!pJson["created_at"].isNull())
+        {
+            auto timeStr = pJson["created_at"].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
+        }
+    }
+    if(pJson.isMember("updated_at"))
+    {
+        dirtyFlag_[10]=true;
+        if(!pJson["updated_at"].isNull())
+        {
+            auto timeStr = pJson["updated_at"].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                updatedAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
         }
     }
 }
@@ -139,7 +499,7 @@ Stores::Stores(const Json::Value &pJson) noexcept(false)
 void Stores::updateByMasqueradedJson(const Json::Value &pJson,
                                             const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 3)
+    if(pMasqueradingVector.size() != 11)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -164,7 +524,107 @@ void Stores::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[2] = true;
         if(!pJson[pMasqueradingVector[2]].isNull())
         {
-            location_=std::make_shared<std::string>(pJson[pMasqueradingVector[2]].asString());
+            address_=std::make_shared<std::string>(pJson[pMasqueradingVector[2]].asString());
+        }
+    }
+    if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
+    {
+        dirtyFlag_[3] = true;
+        if(!pJson[pMasqueradingVector[3]].isNull())
+        {
+            latitude_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
+        }
+    }
+    if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
+    {
+        dirtyFlag_[4] = true;
+        if(!pJson[pMasqueradingVector[4]].isNull())
+        {
+            longitude_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
+        }
+    }
+    if(!pMasqueradingVector[5].empty() && pJson.isMember(pMasqueradingVector[5]))
+    {
+        dirtyFlag_[5] = true;
+        if(!pJson[pMasqueradingVector[5]].isNull())
+        {
+            phone_=std::make_shared<std::string>(pJson[pMasqueradingVector[5]].asString());
+        }
+    }
+    if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
+    {
+        dirtyFlag_[6] = true;
+        if(!pJson[pMasqueradingVector[6]].isNull())
+        {
+            website_=std::make_shared<std::string>(pJson[pMasqueradingVector[6]].asString());
+        }
+    }
+    if(!pMasqueradingVector[7].empty() && pJson.isMember(pMasqueradingVector[7]))
+    {
+        dirtyFlag_[7] = true;
+        if(!pJson[pMasqueradingVector[7]].isNull())
+        {
+            hours_=std::make_shared<std::string>(pJson[pMasqueradingVector[7]].asString());
+        }
+    }
+    if(!pMasqueradingVector[8].empty() && pJson.isMember(pMasqueradingVector[8]))
+    {
+        dirtyFlag_[8] = true;
+        if(!pJson[pMasqueradingVector[8]].isNull())
+        {
+            parking_=std::make_shared<std::string>(pJson[pMasqueradingVector[8]].asString());
+        }
+    }
+    if(!pMasqueradingVector[9].empty() && pJson.isMember(pMasqueradingVector[9]))
+    {
+        dirtyFlag_[9] = true;
+        if(!pJson[pMasqueradingVector[9]].isNull())
+        {
+            auto timeStr = pJson[pMasqueradingVector[9]].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
+        }
+    }
+    if(!pMasqueradingVector[10].empty() && pJson.isMember(pMasqueradingVector[10]))
+    {
+        dirtyFlag_[10] = true;
+        if(!pJson[pMasqueradingVector[10]].isNull())
+        {
+            auto timeStr = pJson[pMasqueradingVector[10]].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                updatedAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
         }
     }
 }
@@ -186,12 +646,112 @@ void Stores::updateByJson(const Json::Value &pJson) noexcept(false)
             name_=std::make_shared<std::string>(pJson["name"].asString());
         }
     }
-    if(pJson.isMember("location"))
+    if(pJson.isMember("address"))
     {
         dirtyFlag_[2] = true;
-        if(!pJson["location"].isNull())
+        if(!pJson["address"].isNull())
         {
-            location_=std::make_shared<std::string>(pJson["location"].asString());
+            address_=std::make_shared<std::string>(pJson["address"].asString());
+        }
+    }
+    if(pJson.isMember("latitude"))
+    {
+        dirtyFlag_[3] = true;
+        if(!pJson["latitude"].isNull())
+        {
+            latitude_=std::make_shared<std::string>(pJson["latitude"].asString());
+        }
+    }
+    if(pJson.isMember("longitude"))
+    {
+        dirtyFlag_[4] = true;
+        if(!pJson["longitude"].isNull())
+        {
+            longitude_=std::make_shared<std::string>(pJson["longitude"].asString());
+        }
+    }
+    if(pJson.isMember("phone"))
+    {
+        dirtyFlag_[5] = true;
+        if(!pJson["phone"].isNull())
+        {
+            phone_=std::make_shared<std::string>(pJson["phone"].asString());
+        }
+    }
+    if(pJson.isMember("website"))
+    {
+        dirtyFlag_[6] = true;
+        if(!pJson["website"].isNull())
+        {
+            website_=std::make_shared<std::string>(pJson["website"].asString());
+        }
+    }
+    if(pJson.isMember("hours"))
+    {
+        dirtyFlag_[7] = true;
+        if(!pJson["hours"].isNull())
+        {
+            hours_=std::make_shared<std::string>(pJson["hours"].asString());
+        }
+    }
+    if(pJson.isMember("parking"))
+    {
+        dirtyFlag_[8] = true;
+        if(!pJson["parking"].isNull())
+        {
+            parking_=std::make_shared<std::string>(pJson["parking"].asString());
+        }
+    }
+    if(pJson.isMember("created_at"))
+    {
+        dirtyFlag_[9] = true;
+        if(!pJson["created_at"].isNull())
+        {
+            auto timeStr = pJson["created_at"].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
+        }
+    }
+    if(pJson.isMember("updated_at"))
+    {
+        dirtyFlag_[10] = true;
+        if(!pJson["updated_at"].isNull())
+        {
+            auto timeStr = pJson["updated_at"].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                updatedAt_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
         }
     }
 }
@@ -240,31 +800,212 @@ void Stores::setName(std::string &&pName) noexcept
     dirtyFlag_[1] = true;
 }
 
-const std::string &Stores::getValueOfLocation() const noexcept
+const std::string &Stores::getValueOfAddress() const noexcept
 {
     static const std::string defaultValue = std::string();
-    if(location_)
-        return *location_;
+    if(address_)
+        return *address_;
     return defaultValue;
 }
-const std::shared_ptr<std::string> &Stores::getLocation() const noexcept
+const std::shared_ptr<std::string> &Stores::getAddress() const noexcept
 {
-    return location_;
+    return address_;
 }
-void Stores::setLocation(const std::string &pLocation) noexcept
+void Stores::setAddress(const std::string &pAddress) noexcept
 {
-    location_ = std::make_shared<std::string>(pLocation);
+    address_ = std::make_shared<std::string>(pAddress);
     dirtyFlag_[2] = true;
 }
-void Stores::setLocation(std::string &&pLocation) noexcept
+void Stores::setAddress(std::string &&pAddress) noexcept
 {
-    location_ = std::make_shared<std::string>(std::move(pLocation));
+    address_ = std::make_shared<std::string>(std::move(pAddress));
     dirtyFlag_[2] = true;
 }
-void Stores::setLocationToNull() noexcept
+
+const std::string &Stores::getValueOfLatitude() const noexcept
 {
-    location_.reset();
-    dirtyFlag_[2] = true;
+    static const std::string defaultValue = std::string();
+    if(latitude_)
+        return *latitude_;
+    return defaultValue;
+}
+const std::shared_ptr<std::string> &Stores::getLatitude() const noexcept
+{
+    return latitude_;
+}
+void Stores::setLatitude(const std::string &pLatitude) noexcept
+{
+    latitude_ = std::make_shared<std::string>(pLatitude);
+    dirtyFlag_[3] = true;
+}
+void Stores::setLatitude(std::string &&pLatitude) noexcept
+{
+    latitude_ = std::make_shared<std::string>(std::move(pLatitude));
+    dirtyFlag_[3] = true;
+}
+
+const std::string &Stores::getValueOfLongitude() const noexcept
+{
+    static const std::string defaultValue = std::string();
+    if(longitude_)
+        return *longitude_;
+    return defaultValue;
+}
+const std::shared_ptr<std::string> &Stores::getLongitude() const noexcept
+{
+    return longitude_;
+}
+void Stores::setLongitude(const std::string &pLongitude) noexcept
+{
+    longitude_ = std::make_shared<std::string>(pLongitude);
+    dirtyFlag_[4] = true;
+}
+void Stores::setLongitude(std::string &&pLongitude) noexcept
+{
+    longitude_ = std::make_shared<std::string>(std::move(pLongitude));
+    dirtyFlag_[4] = true;
+}
+
+const std::string &Stores::getValueOfPhone() const noexcept
+{
+    static const std::string defaultValue = std::string();
+    if(phone_)
+        return *phone_;
+    return defaultValue;
+}
+const std::shared_ptr<std::string> &Stores::getPhone() const noexcept
+{
+    return phone_;
+}
+void Stores::setPhone(const std::string &pPhone) noexcept
+{
+    phone_ = std::make_shared<std::string>(pPhone);
+    dirtyFlag_[5] = true;
+}
+void Stores::setPhone(std::string &&pPhone) noexcept
+{
+    phone_ = std::make_shared<std::string>(std::move(pPhone));
+    dirtyFlag_[5] = true;
+}
+void Stores::setPhoneToNull() noexcept
+{
+    phone_.reset();
+    dirtyFlag_[5] = true;
+}
+
+const std::string &Stores::getValueOfWebsite() const noexcept
+{
+    static const std::string defaultValue = std::string();
+    if(website_)
+        return *website_;
+    return defaultValue;
+}
+const std::shared_ptr<std::string> &Stores::getWebsite() const noexcept
+{
+    return website_;
+}
+void Stores::setWebsite(const std::string &pWebsite) noexcept
+{
+    website_ = std::make_shared<std::string>(pWebsite);
+    dirtyFlag_[6] = true;
+}
+void Stores::setWebsite(std::string &&pWebsite) noexcept
+{
+    website_ = std::make_shared<std::string>(std::move(pWebsite));
+    dirtyFlag_[6] = true;
+}
+void Stores::setWebsiteToNull() noexcept
+{
+    website_.reset();
+    dirtyFlag_[6] = true;
+}
+
+const std::string &Stores::getValueOfHours() const noexcept
+{
+    static const std::string defaultValue = std::string();
+    if(hours_)
+        return *hours_;
+    return defaultValue;
+}
+const std::shared_ptr<std::string> &Stores::getHours() const noexcept
+{
+    return hours_;
+}
+void Stores::setHours(const std::string &pHours) noexcept
+{
+    hours_ = std::make_shared<std::string>(pHours);
+    dirtyFlag_[7] = true;
+}
+void Stores::setHours(std::string &&pHours) noexcept
+{
+    hours_ = std::make_shared<std::string>(std::move(pHours));
+    dirtyFlag_[7] = true;
+}
+void Stores::setHoursToNull() noexcept
+{
+    hours_.reset();
+    dirtyFlag_[7] = true;
+}
+
+const std::string &Stores::getValueOfParking() const noexcept
+{
+    static const std::string defaultValue = std::string();
+    if(parking_)
+        return *parking_;
+    return defaultValue;
+}
+const std::shared_ptr<std::string> &Stores::getParking() const noexcept
+{
+    return parking_;
+}
+void Stores::setParking(const std::string &pParking) noexcept
+{
+    parking_ = std::make_shared<std::string>(pParking);
+    dirtyFlag_[8] = true;
+}
+void Stores::setParking(std::string &&pParking) noexcept
+{
+    parking_ = std::make_shared<std::string>(std::move(pParking));
+    dirtyFlag_[8] = true;
+}
+void Stores::setParkingToNull() noexcept
+{
+    parking_.reset();
+    dirtyFlag_[8] = true;
+}
+
+const ::trantor::Date &Stores::getValueOfCreatedAt() const noexcept
+{
+    static const ::trantor::Date defaultValue = ::trantor::Date();
+    if(createdAt_)
+        return *createdAt_;
+    return defaultValue;
+}
+const std::shared_ptr<::trantor::Date> &Stores::getCreatedAt() const noexcept
+{
+    return createdAt_;
+}
+void Stores::setCreatedAt(const ::trantor::Date &pCreatedAt) noexcept
+{
+    createdAt_ = std::make_shared<::trantor::Date>(pCreatedAt);
+    dirtyFlag_[9] = true;
+}
+
+const ::trantor::Date &Stores::getValueOfUpdatedAt() const noexcept
+{
+    static const ::trantor::Date defaultValue = ::trantor::Date();
+    if(updatedAt_)
+        return *updatedAt_;
+    return defaultValue;
+}
+const std::shared_ptr<::trantor::Date> &Stores::getUpdatedAt() const noexcept
+{
+    return updatedAt_;
+}
+void Stores::setUpdatedAt(const ::trantor::Date &pUpdatedAt) noexcept
+{
+    updatedAt_ = std::make_shared<::trantor::Date>(pUpdatedAt);
+    dirtyFlag_[10] = true;
 }
 
 void Stores::updateId(const uint64_t id)
@@ -275,7 +1016,15 @@ const std::vector<std::string> &Stores::insertColumns() noexcept
 {
     static const std::vector<std::string> inCols={
         "name",
-        "location"
+        "address",
+        "latitude",
+        "longitude",
+        "phone",
+        "website",
+        "hours",
+        "parking",
+        "created_at",
+        "updated_at"
     };
     return inCols;
 }
@@ -295,9 +1044,97 @@ void Stores::outputArgs(drogon::orm::internal::SqlBinder &binder) const
     }
     if(dirtyFlag_[2])
     {
-        if(getLocation())
+        if(getAddress())
         {
-            binder << getValueOfLocation();
+            binder << getValueOfAddress();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[3])
+    {
+        if(getLatitude())
+        {
+            binder << getValueOfLatitude();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[4])
+    {
+        if(getLongitude())
+        {
+            binder << getValueOfLongitude();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[5])
+    {
+        if(getPhone())
+        {
+            binder << getValueOfPhone();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[6])
+    {
+        if(getWebsite())
+        {
+            binder << getValueOfWebsite();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[7])
+    {
+        if(getHours())
+        {
+            binder << getValueOfHours();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[8])
+    {
+        if(getParking())
+        {
+            binder << getValueOfParking();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[9])
+    {
+        if(getCreatedAt())
+        {
+            binder << getValueOfCreatedAt();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[10])
+    {
+        if(getUpdatedAt())
+        {
+            binder << getValueOfUpdatedAt();
         }
         else
         {
@@ -317,6 +1154,38 @@ const std::vector<std::string> Stores::updateColumns() const
     {
         ret.push_back(getColumnName(2));
     }
+    if(dirtyFlag_[3])
+    {
+        ret.push_back(getColumnName(3));
+    }
+    if(dirtyFlag_[4])
+    {
+        ret.push_back(getColumnName(4));
+    }
+    if(dirtyFlag_[5])
+    {
+        ret.push_back(getColumnName(5));
+    }
+    if(dirtyFlag_[6])
+    {
+        ret.push_back(getColumnName(6));
+    }
+    if(dirtyFlag_[7])
+    {
+        ret.push_back(getColumnName(7));
+    }
+    if(dirtyFlag_[8])
+    {
+        ret.push_back(getColumnName(8));
+    }
+    if(dirtyFlag_[9])
+    {
+        ret.push_back(getColumnName(9));
+    }
+    if(dirtyFlag_[10])
+    {
+        ret.push_back(getColumnName(10));
+    }
     return ret;
 }
 
@@ -335,9 +1204,97 @@ void Stores::updateArgs(drogon::orm::internal::SqlBinder &binder) const
     }
     if(dirtyFlag_[2])
     {
-        if(getLocation())
+        if(getAddress())
         {
-            binder << getValueOfLocation();
+            binder << getValueOfAddress();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[3])
+    {
+        if(getLatitude())
+        {
+            binder << getValueOfLatitude();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[4])
+    {
+        if(getLongitude())
+        {
+            binder << getValueOfLongitude();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[5])
+    {
+        if(getPhone())
+        {
+            binder << getValueOfPhone();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[6])
+    {
+        if(getWebsite())
+        {
+            binder << getValueOfWebsite();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[7])
+    {
+        if(getHours())
+        {
+            binder << getValueOfHours();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[8])
+    {
+        if(getParking())
+        {
+            binder << getValueOfParking();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[9])
+    {
+        if(getCreatedAt())
+        {
+            binder << getValueOfCreatedAt();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[10])
+    {
+        if(getUpdatedAt())
+        {
+            binder << getValueOfUpdatedAt();
         }
         else
         {
@@ -364,13 +1321,77 @@ Json::Value Stores::toJson() const
     {
         ret["name"]=Json::Value();
     }
-    if(getLocation())
+    if(getAddress())
     {
-        ret["location"]=getValueOfLocation();
+        ret["address"]=getValueOfAddress();
     }
     else
     {
-        ret["location"]=Json::Value();
+        ret["address"]=Json::Value();
+    }
+    if(getLatitude())
+    {
+        ret["latitude"]=getValueOfLatitude();
+    }
+    else
+    {
+        ret["latitude"]=Json::Value();
+    }
+    if(getLongitude())
+    {
+        ret["longitude"]=getValueOfLongitude();
+    }
+    else
+    {
+        ret["longitude"]=Json::Value();
+    }
+    if(getPhone())
+    {
+        ret["phone"]=getValueOfPhone();
+    }
+    else
+    {
+        ret["phone"]=Json::Value();
+    }
+    if(getWebsite())
+    {
+        ret["website"]=getValueOfWebsite();
+    }
+    else
+    {
+        ret["website"]=Json::Value();
+    }
+    if(getHours())
+    {
+        ret["hours"]=getValueOfHours();
+    }
+    else
+    {
+        ret["hours"]=Json::Value();
+    }
+    if(getParking())
+    {
+        ret["parking"]=getValueOfParking();
+    }
+    else
+    {
+        ret["parking"]=Json::Value();
+    }
+    if(getCreatedAt())
+    {
+        ret["created_at"]=getCreatedAt()->toDbStringLocal();
+    }
+    else
+    {
+        ret["created_at"]=Json::Value();
+    }
+    if(getUpdatedAt())
+    {
+        ret["updated_at"]=getUpdatedAt()->toDbStringLocal();
+    }
+    else
+    {
+        ret["updated_at"]=Json::Value();
     }
     return ret;
 }
@@ -384,7 +1405,7 @@ Json::Value Stores::toMasqueradedJson(
     const std::vector<std::string> &pMasqueradingVector) const
 {
     Json::Value ret;
-    if(pMasqueradingVector.size() == 3)
+    if(pMasqueradingVector.size() == 11)
     {
         if(!pMasqueradingVector[0].empty())
         {
@@ -410,13 +1431,101 @@ Json::Value Stores::toMasqueradedJson(
         }
         if(!pMasqueradingVector[2].empty())
         {
-            if(getLocation())
+            if(getAddress())
             {
-                ret[pMasqueradingVector[2]]=getValueOfLocation();
+                ret[pMasqueradingVector[2]]=getValueOfAddress();
             }
             else
             {
                 ret[pMasqueradingVector[2]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[3].empty())
+        {
+            if(getLatitude())
+            {
+                ret[pMasqueradingVector[3]]=getValueOfLatitude();
+            }
+            else
+            {
+                ret[pMasqueradingVector[3]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[4].empty())
+        {
+            if(getLongitude())
+            {
+                ret[pMasqueradingVector[4]]=getValueOfLongitude();
+            }
+            else
+            {
+                ret[pMasqueradingVector[4]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[5].empty())
+        {
+            if(getPhone())
+            {
+                ret[pMasqueradingVector[5]]=getValueOfPhone();
+            }
+            else
+            {
+                ret[pMasqueradingVector[5]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[6].empty())
+        {
+            if(getWebsite())
+            {
+                ret[pMasqueradingVector[6]]=getValueOfWebsite();
+            }
+            else
+            {
+                ret[pMasqueradingVector[6]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[7].empty())
+        {
+            if(getHours())
+            {
+                ret[pMasqueradingVector[7]]=getValueOfHours();
+            }
+            else
+            {
+                ret[pMasqueradingVector[7]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[8].empty())
+        {
+            if(getParking())
+            {
+                ret[pMasqueradingVector[8]]=getValueOfParking();
+            }
+            else
+            {
+                ret[pMasqueradingVector[8]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[9].empty())
+        {
+            if(getCreatedAt())
+            {
+                ret[pMasqueradingVector[9]]=getCreatedAt()->toDbStringLocal();
+            }
+            else
+            {
+                ret[pMasqueradingVector[9]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[10].empty())
+        {
+            if(getUpdatedAt())
+            {
+                ret[pMasqueradingVector[10]]=getUpdatedAt()->toDbStringLocal();
+            }
+            else
+            {
+                ret[pMasqueradingVector[10]]=Json::Value();
             }
         }
         return ret;
@@ -438,13 +1547,77 @@ Json::Value Stores::toMasqueradedJson(
     {
         ret["name"]=Json::Value();
     }
-    if(getLocation())
+    if(getAddress())
     {
-        ret["location"]=getValueOfLocation();
+        ret["address"]=getValueOfAddress();
     }
     else
     {
-        ret["location"]=Json::Value();
+        ret["address"]=Json::Value();
+    }
+    if(getLatitude())
+    {
+        ret["latitude"]=getValueOfLatitude();
+    }
+    else
+    {
+        ret["latitude"]=Json::Value();
+    }
+    if(getLongitude())
+    {
+        ret["longitude"]=getValueOfLongitude();
+    }
+    else
+    {
+        ret["longitude"]=Json::Value();
+    }
+    if(getPhone())
+    {
+        ret["phone"]=getValueOfPhone();
+    }
+    else
+    {
+        ret["phone"]=Json::Value();
+    }
+    if(getWebsite())
+    {
+        ret["website"]=getValueOfWebsite();
+    }
+    else
+    {
+        ret["website"]=Json::Value();
+    }
+    if(getHours())
+    {
+        ret["hours"]=getValueOfHours();
+    }
+    else
+    {
+        ret["hours"]=Json::Value();
+    }
+    if(getParking())
+    {
+        ret["parking"]=getValueOfParking();
+    }
+    else
+    {
+        ret["parking"]=Json::Value();
+    }
+    if(getCreatedAt())
+    {
+        ret["created_at"]=getCreatedAt()->toDbStringLocal();
+    }
+    else
+    {
+        ret["created_at"]=Json::Value();
+    }
+    if(getUpdatedAt())
+    {
+        ret["updated_at"]=getUpdatedAt()->toDbStringLocal();
+    }
+    else
+    {
+        ret["updated_at"]=Json::Value();
     }
     return ret;
 }
@@ -466,9 +1639,64 @@ bool Stores::validateJsonForCreation(const Json::Value &pJson, std::string &err)
         err="The name column cannot be null";
         return false;
     }
-    if(pJson.isMember("location"))
+    if(pJson.isMember("address"))
     {
-        if(!validJsonOfField(2, "location", pJson["location"], err, true))
+        if(!validJsonOfField(2, "address", pJson["address"], err, true))
+            return false;
+    }
+    else
+    {
+        err="The address column cannot be null";
+        return false;
+    }
+    if(pJson.isMember("latitude"))
+    {
+        if(!validJsonOfField(3, "latitude", pJson["latitude"], err, true))
+            return false;
+    }
+    else
+    {
+        err="The latitude column cannot be null";
+        return false;
+    }
+    if(pJson.isMember("longitude"))
+    {
+        if(!validJsonOfField(4, "longitude", pJson["longitude"], err, true))
+            return false;
+    }
+    else
+    {
+        err="The longitude column cannot be null";
+        return false;
+    }
+    if(pJson.isMember("phone"))
+    {
+        if(!validJsonOfField(5, "phone", pJson["phone"], err, true))
+            return false;
+    }
+    if(pJson.isMember("website"))
+    {
+        if(!validJsonOfField(6, "website", pJson["website"], err, true))
+            return false;
+    }
+    if(pJson.isMember("hours"))
+    {
+        if(!validJsonOfField(7, "hours", pJson["hours"], err, true))
+            return false;
+    }
+    if(pJson.isMember("parking"))
+    {
+        if(!validJsonOfField(8, "parking", pJson["parking"], err, true))
+            return false;
+    }
+    if(pJson.isMember("created_at"))
+    {
+        if(!validJsonOfField(9, "created_at", pJson["created_at"], err, true))
+            return false;
+    }
+    if(pJson.isMember("updated_at"))
+    {
+        if(!validJsonOfField(10, "updated_at", pJson["updated_at"], err, true))
             return false;
     }
     return true;
@@ -477,7 +1705,7 @@ bool Stores::validateMasqueradedJsonForCreation(const Json::Value &pJson,
                                                 const std::vector<std::string> &pMasqueradingVector,
                                                 std::string &err)
 {
-    if(pMasqueradingVector.size() != 3)
+    if(pMasqueradingVector.size() != 11)
     {
         err = "Bad masquerading vector";
         return false;
@@ -511,6 +1739,85 @@ bool Stores::validateMasqueradedJsonForCreation(const Json::Value &pJson,
               if(!validJsonOfField(2, pMasqueradingVector[2], pJson[pMasqueradingVector[2]], err, true))
                   return false;
           }
+        else
+        {
+            err="The " + pMasqueradingVector[2] + " column cannot be null";
+            return false;
+        }
+      }
+      if(!pMasqueradingVector[3].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[3]))
+          {
+              if(!validJsonOfField(3, pMasqueradingVector[3], pJson[pMasqueradingVector[3]], err, true))
+                  return false;
+          }
+        else
+        {
+            err="The " + pMasqueradingVector[3] + " column cannot be null";
+            return false;
+        }
+      }
+      if(!pMasqueradingVector[4].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[4]))
+          {
+              if(!validJsonOfField(4, pMasqueradingVector[4], pJson[pMasqueradingVector[4]], err, true))
+                  return false;
+          }
+        else
+        {
+            err="The " + pMasqueradingVector[4] + " column cannot be null";
+            return false;
+        }
+      }
+      if(!pMasqueradingVector[5].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[5]))
+          {
+              if(!validJsonOfField(5, pMasqueradingVector[5], pJson[pMasqueradingVector[5]], err, true))
+                  return false;
+          }
+      }
+      if(!pMasqueradingVector[6].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[6]))
+          {
+              if(!validJsonOfField(6, pMasqueradingVector[6], pJson[pMasqueradingVector[6]], err, true))
+                  return false;
+          }
+      }
+      if(!pMasqueradingVector[7].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[7]))
+          {
+              if(!validJsonOfField(7, pMasqueradingVector[7], pJson[pMasqueradingVector[7]], err, true))
+                  return false;
+          }
+      }
+      if(!pMasqueradingVector[8].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[8]))
+          {
+              if(!validJsonOfField(8, pMasqueradingVector[8], pJson[pMasqueradingVector[8]], err, true))
+                  return false;
+          }
+      }
+      if(!pMasqueradingVector[9].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[9]))
+          {
+              if(!validJsonOfField(9, pMasqueradingVector[9], pJson[pMasqueradingVector[9]], err, true))
+                  return false;
+          }
+      }
+      if(!pMasqueradingVector[10].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[10]))
+          {
+              if(!validJsonOfField(10, pMasqueradingVector[10], pJson[pMasqueradingVector[10]], err, true))
+                  return false;
+          }
       }
     }
     catch(const Json::LogicError &e)
@@ -537,9 +1844,49 @@ bool Stores::validateJsonForUpdate(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(1, "name", pJson["name"], err, false))
             return false;
     }
-    if(pJson.isMember("location"))
+    if(pJson.isMember("address"))
     {
-        if(!validJsonOfField(2, "location", pJson["location"], err, false))
+        if(!validJsonOfField(2, "address", pJson["address"], err, false))
+            return false;
+    }
+    if(pJson.isMember("latitude"))
+    {
+        if(!validJsonOfField(3, "latitude", pJson["latitude"], err, false))
+            return false;
+    }
+    if(pJson.isMember("longitude"))
+    {
+        if(!validJsonOfField(4, "longitude", pJson["longitude"], err, false))
+            return false;
+    }
+    if(pJson.isMember("phone"))
+    {
+        if(!validJsonOfField(5, "phone", pJson["phone"], err, false))
+            return false;
+    }
+    if(pJson.isMember("website"))
+    {
+        if(!validJsonOfField(6, "website", pJson["website"], err, false))
+            return false;
+    }
+    if(pJson.isMember("hours"))
+    {
+        if(!validJsonOfField(7, "hours", pJson["hours"], err, false))
+            return false;
+    }
+    if(pJson.isMember("parking"))
+    {
+        if(!validJsonOfField(8, "parking", pJson["parking"], err, false))
+            return false;
+    }
+    if(pJson.isMember("created_at"))
+    {
+        if(!validJsonOfField(9, "created_at", pJson["created_at"], err, false))
+            return false;
+    }
+    if(pJson.isMember("updated_at"))
+    {
+        if(!validJsonOfField(10, "updated_at", pJson["updated_at"], err, false))
             return false;
     }
     return true;
@@ -548,7 +1895,7 @@ bool Stores::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
                                               const std::vector<std::string> &pMasqueradingVector,
                                               std::string &err)
 {
-    if(pMasqueradingVector.size() != 3)
+    if(pMasqueradingVector.size() != 11)
     {
         err = "Bad masquerading vector";
         return false;
@@ -572,6 +1919,46 @@ bool Stores::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
       if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
       {
           if(!validJsonOfField(2, pMasqueradingVector[2], pJson[pMasqueradingVector[2]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
+      {
+          if(!validJsonOfField(3, pMasqueradingVector[3], pJson[pMasqueradingVector[3]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
+      {
+          if(!validJsonOfField(4, pMasqueradingVector[4], pJson[pMasqueradingVector[4]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[5].empty() && pJson.isMember(pMasqueradingVector[5]))
+      {
+          if(!validJsonOfField(5, pMasqueradingVector[5], pJson[pMasqueradingVector[5]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
+      {
+          if(!validJsonOfField(6, pMasqueradingVector[6], pJson[pMasqueradingVector[6]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[7].empty() && pJson.isMember(pMasqueradingVector[7]))
+      {
+          if(!validJsonOfField(7, pMasqueradingVector[7], pJson[pMasqueradingVector[7]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[8].empty() && pJson.isMember(pMasqueradingVector[8]))
+      {
+          if(!validJsonOfField(8, pMasqueradingVector[8], pJson[pMasqueradingVector[8]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[9].empty() && pJson.isMember(pMasqueradingVector[9]))
+      {
+          if(!validJsonOfField(9, pMasqueradingVector[9], pJson[pMasqueradingVector[9]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[10].empty() && pJson.isMember(pMasqueradingVector[10]))
+      {
+          if(!validJsonOfField(10, pMasqueradingVector[10], pJson[pMasqueradingVector[10]], err, false))
               return false;
       }
     }
@@ -630,6 +2017,69 @@ bool Stores::validJsonOfField(size_t index,
         case 2:
             if(pJson.isNull())
             {
+                err="The " + fieldName + " column cannot be null";
+                return false;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            if(pJson.isString() && std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t>{}
+                .from_bytes(pJson.asCString()).size() > 255)
+            {
+                err="String length exceeds limit for the " +
+                    fieldName +
+                    " field (the maximum value is 255)";
+                return false;
+            }
+            break;
+        case 3:
+            if(pJson.isNull())
+            {
+                err="The " + fieldName + " column cannot be null";
+                return false;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            break;
+        case 4:
+            if(pJson.isNull())
+            {
+                err="The " + fieldName + " column cannot be null";
+                return false;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            break;
+        case 5:
+            if(pJson.isNull())
+            {
+                return true;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            if(pJson.isString() && std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t>{}
+                .from_bytes(pJson.asCString()).size() > 20)
+            {
+                err="String length exceeds limit for the " +
+                    fieldName +
+                    " field (the maximum value is 20)";
+                return false;
+            }
+            break;
+        case 6:
+            if(pJson.isNull())
+            {
                 return true;
             }
             if(!pJson.isString())
@@ -643,6 +2093,60 @@ bool Stores::validJsonOfField(size_t index,
                 err="String length exceeds limit for the " +
                     fieldName +
                     " field (the maximum value is 255)";
+                return false;
+            }
+            break;
+        case 7:
+            if(pJson.isNull())
+            {
+                return true;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            break;
+        case 8:
+            if(pJson.isNull())
+            {
+                return true;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            if(pJson.isString() && std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t>{}
+                .from_bytes(pJson.asCString()).size() > 50)
+            {
+                err="String length exceeds limit for the " +
+                    fieldName +
+                    " field (the maximum value is 50)";
+                return false;
+            }
+            break;
+        case 9:
+            if(pJson.isNull())
+            {
+                err="The " + fieldName + " column cannot be null";
+                return false;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            break;
+        case 10:
+            if(pJson.isNull())
+            {
+                err="The " + fieldName + " column cannot be null";
+                return false;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
                 return false;
             }
             break;

@@ -46,7 +46,15 @@ class Stores
     {
         static const std::string _store_id;
         static const std::string _name;
-        static const std::string _location;
+        static const std::string _address;
+        static const std::string _latitude;
+        static const std::string _longitude;
+        static const std::string _phone;
+        static const std::string _website;
+        static const std::string _hours;
+        static const std::string _parking;
+        static const std::string _created_at;
+        static const std::string _updated_at;
     };
 
     static const int primaryKeyNumber;
@@ -115,18 +123,91 @@ class Stores
     void setName(const std::string &pName) noexcept;
     void setName(std::string &&pName) noexcept;
 
-    /**  For column location  */
-    ///Get the value of the column location, returns the default value if the column is null
-    const std::string &getValueOfLocation() const noexcept;
+    /**  For column address  */
+    ///Get the value of the column address, returns the default value if the column is null
+    const std::string &getValueOfAddress() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<std::string> &getLocation() const noexcept;
-    ///Set the value of the column location
-    void setLocation(const std::string &pLocation) noexcept;
-    void setLocation(std::string &&pLocation) noexcept;
-    void setLocationToNull() noexcept;
+    const std::shared_ptr<std::string> &getAddress() const noexcept;
+    ///Set the value of the column address
+    void setAddress(const std::string &pAddress) noexcept;
+    void setAddress(std::string &&pAddress) noexcept;
+
+    /**  For column latitude  */
+    ///Get the value of the column latitude, returns the default value if the column is null
+    const std::string &getValueOfLatitude() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<std::string> &getLatitude() const noexcept;
+    ///Set the value of the column latitude
+    void setLatitude(const std::string &pLatitude) noexcept;
+    void setLatitude(std::string &&pLatitude) noexcept;
+
+    /**  For column longitude  */
+    ///Get the value of the column longitude, returns the default value if the column is null
+    const std::string &getValueOfLongitude() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<std::string> &getLongitude() const noexcept;
+    ///Set the value of the column longitude
+    void setLongitude(const std::string &pLongitude) noexcept;
+    void setLongitude(std::string &&pLongitude) noexcept;
+
+    /**  For column phone  */
+    ///Get the value of the column phone, returns the default value if the column is null
+    const std::string &getValueOfPhone() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<std::string> &getPhone() const noexcept;
+    ///Set the value of the column phone
+    void setPhone(const std::string &pPhone) noexcept;
+    void setPhone(std::string &&pPhone) noexcept;
+    void setPhoneToNull() noexcept;
+
+    /**  For column website  */
+    ///Get the value of the column website, returns the default value if the column is null
+    const std::string &getValueOfWebsite() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<std::string> &getWebsite() const noexcept;
+    ///Set the value of the column website
+    void setWebsite(const std::string &pWebsite) noexcept;
+    void setWebsite(std::string &&pWebsite) noexcept;
+    void setWebsiteToNull() noexcept;
+
+    /**  For column hours  */
+    ///Get the value of the column hours, returns the default value if the column is null
+    const std::string &getValueOfHours() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<std::string> &getHours() const noexcept;
+    ///Set the value of the column hours
+    void setHours(const std::string &pHours) noexcept;
+    void setHours(std::string &&pHours) noexcept;
+    void setHoursToNull() noexcept;
+
+    /**  For column parking  */
+    ///Get the value of the column parking, returns the default value if the column is null
+    const std::string &getValueOfParking() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<std::string> &getParking() const noexcept;
+    ///Set the value of the column parking
+    void setParking(const std::string &pParking) noexcept;
+    void setParking(std::string &&pParking) noexcept;
+    void setParkingToNull() noexcept;
+
+    /**  For column created_at  */
+    ///Get the value of the column created_at, returns the default value if the column is null
+    const ::trantor::Date &getValueOfCreatedAt() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<::trantor::Date> &getCreatedAt() const noexcept;
+    ///Set the value of the column created_at
+    void setCreatedAt(const ::trantor::Date &pCreatedAt) noexcept;
+
+    /**  For column updated_at  */
+    ///Get the value of the column updated_at, returns the default value if the column is null
+    const ::trantor::Date &getValueOfUpdatedAt() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<::trantor::Date> &getUpdatedAt() const noexcept;
+    ///Set the value of the column updated_at
+    void setUpdatedAt(const ::trantor::Date &pUpdatedAt) noexcept;
 
 
-    static size_t getColumnNumber() noexcept {  return 3;  }
+    static size_t getColumnNumber() noexcept {  return 11;  }
     static const std::string &getColumnName(size_t index) noexcept(false);
 
     Json::Value toJson() const;
@@ -150,7 +231,15 @@ class Stores
     void updateId(const uint64_t id);
     std::shared_ptr<int32_t> storeId_;
     std::shared_ptr<std::string> name_;
-    std::shared_ptr<std::string> location_;
+    std::shared_ptr<std::string> address_;
+    std::shared_ptr<std::string> latitude_;
+    std::shared_ptr<std::string> longitude_;
+    std::shared_ptr<std::string> phone_;
+    std::shared_ptr<std::string> website_;
+    std::shared_ptr<std::string> hours_;
+    std::shared_ptr<std::string> parking_;
+    std::shared_ptr<::trantor::Date> createdAt_;
+    std::shared_ptr<::trantor::Date> updatedAt_;
     struct MetaData
     {
         const std::string colName_;
@@ -162,7 +251,7 @@ class Stores
         const bool notNull_;
     };
     static const std::vector<MetaData> metaData_;
-    bool dirtyFlag_[3]={ false };
+    bool dirtyFlag_[11]={ false };
   public:
     static const std::string &sqlForFindingByPrimaryKey()
     {
@@ -189,8 +278,50 @@ class Stores
         }
         if(dirtyFlag_[2])
         {
-            sql += "location,";
+            sql += "address,";
             ++parametersCount;
+        }
+        if(dirtyFlag_[3])
+        {
+            sql += "latitude,";
+            ++parametersCount;
+        }
+        if(dirtyFlag_[4])
+        {
+            sql += "longitude,";
+            ++parametersCount;
+        }
+        if(dirtyFlag_[5])
+        {
+            sql += "phone,";
+            ++parametersCount;
+        }
+        if(dirtyFlag_[6])
+        {
+            sql += "website,";
+            ++parametersCount;
+        }
+        if(dirtyFlag_[7])
+        {
+            sql += "hours,";
+            ++parametersCount;
+        }
+        if(dirtyFlag_[8])
+        {
+            sql += "parking,";
+            ++parametersCount;
+        }
+        sql += "created_at,";
+        ++parametersCount;
+        if(!dirtyFlag_[9])
+        {
+            needSelection=true;
+        }
+        sql += "updated_at,";
+        ++parametersCount;
+        if(!dirtyFlag_[10])
+        {
+            needSelection=true;
         }
         needSelection=true;
         if(parametersCount > 0)
@@ -214,6 +345,54 @@ class Stores
         {
             n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
             sql.append(placeholderStr, n);
+        }
+        if(dirtyFlag_[3])
+        {
+            n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
+            sql.append(placeholderStr, n);
+        }
+        if(dirtyFlag_[4])
+        {
+            n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
+            sql.append(placeholderStr, n);
+        }
+        if(dirtyFlag_[5])
+        {
+            n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
+            sql.append(placeholderStr, n);
+        }
+        if(dirtyFlag_[6])
+        {
+            n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
+            sql.append(placeholderStr, n);
+        }
+        if(dirtyFlag_[7])
+        {
+            n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
+            sql.append(placeholderStr, n);
+        }
+        if(dirtyFlag_[8])
+        {
+            n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
+            sql.append(placeholderStr, n);
+        }
+        if(dirtyFlag_[9])
+        {
+            n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
+            sql.append(placeholderStr, n);
+        }
+        else
+        {
+            sql +="default,";
+        }
+        if(dirtyFlag_[10])
+        {
+            n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
+            sql.append(placeholderStr, n);
+        }
+        else
+        {
+            sql +="default,";
         }
         if(parametersCount > 0)
         {
