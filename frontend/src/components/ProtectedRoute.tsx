@@ -1,22 +1,11 @@
 import { Navigate, Outlet } from "react-router-dom";
 
 import type { AuthUser, Role } from "../api/auth";
+import { roleHomePath } from "../utils/routes";
 
 interface ProtectedRouteProps {
   user: AuthUser | null;
   allowedRoles?: Role[];
-}
-
-function roleHomePath(role: Role): string {
-  if (role === "admin") {
-    return "/admin/home";
-  }
-
-  if (role === "store_owner") {
-    return "/store/home";
-  }
-
-  return "/user/home";
 }
 
 export default function ProtectedRoute({
