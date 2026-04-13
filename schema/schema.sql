@@ -8,9 +8,17 @@ CREATE TABLE accounts (
 );
 
 CREATE TABLE stores (
-    store_id     SERIAL PRIMARY KEY,
-    name         VARCHAR(255) NOT NULL,
-    location     VARCHAR(255)
+    store_id        SERIAL PRIMARY KEY,
+    name            VARCHAR(255) NOT NULL,
+    address         VARCHAR(255) NOT NULL,
+    latitude        NUMERIC(9, 6) NOT NULL,
+    longitude       NUMERIC(9, 6) NOT NULL,
+    phone           VARCHAR(20),
+    website         VARCHAR(255),
+    hours           JSONB,
+    parking         VARCHAR(50),
+    created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE store_owners (
