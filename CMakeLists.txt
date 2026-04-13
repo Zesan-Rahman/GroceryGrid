@@ -41,10 +41,10 @@ else ()
     message(STATUS "use c++20")
 endif ()
 
-aux_source_directory(controllers CTL_SRC)
-aux_source_directory(filters FILTER_SRC)
-aux_source_directory(plugins PLUGIN_SRC)
-aux_source_directory(models MODEL_SRC)
+file(GLOB CTL_SRC CONFIGURE_DEPENDS controllers/*.cc)
+file(GLOB FILTER_SRC CONFIGURE_DEPENDS filters/*.cc)
+file(GLOB PLUGIN_SRC CONFIGURE_DEPENDS plugins/*.cc)
+file(GLOB MODEL_SRC CONFIGURE_DEPENDS models/*.cc)
 
 drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views
                     ${CMAKE_CURRENT_BINARY_DIR})
