@@ -15,6 +15,7 @@ export default function StoreCatalogPage() {
   const { storeId } = useParams<{ storeId: string }>();
 
   const [ storeCatalog, setStoreCatalog ] = useState<Array<Item> | null>(null);
+  const [ error, setError ] = useState("");
 
   useEffect(() => {
     fetch(`/api/stores/${storeId}/catalog`)
@@ -31,6 +32,7 @@ export default function StoreCatalogPage() {
       <NavBar />
       <main>
         <h1>Store Catalog</h1>
+        {error ? <p>{error}</p> : null}
         { storeCatalog ? (
           <div>
             { storeCatalog.map((item, index) => (

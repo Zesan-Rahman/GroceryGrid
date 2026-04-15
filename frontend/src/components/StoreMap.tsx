@@ -2,7 +2,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useEffectEvent } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 import L from "leaflet";
@@ -12,12 +12,8 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-import {
-    getCachedStores,
-    getStores,
-    type Store,
-    type StoreHours,
-} from "../api/stores";
+import { type Store, type StoreHours } from "../api/stores";
+import { useStores } from "../context/StoreContext";
 
 delete (L.Icon.Default.prototype as L.Icon.Default & {
     _getIconUrl?: unknown;
@@ -149,43 +145,13 @@ function StoreClusters({ stores, onViewCatalog }: StoreClustersProps) {
 }
 
 export default function StoreMap({ height = "100%" }: StoreMapProps) {
-    const navigate = useNavigate();
-    const [stores, setStores] = useState<Store[]>(() => getCachedStores() ?? []);
-    const [loading, setLoading] = useState(() => getCachedStores() === null);
-    const [error, setError] = useState<string | null>(null);
-    const handleViewCatalog = useEffectEvent((storeId: number) => {
-        navigate(`/stores/${storeId}/catalog`);
-    });
+  const navigate = useNavigate();
+  const { stores, loading, error } = useStores();
+  const handleViewCatalog = useEffectEvent((storeId: number) => {
+    navigate(`/stores/${storeId}/catalog`);
+  });
 
-    useEffect(() => {
-        let cancelled = false;
-
-        async function loadStores() {
-            try {
-                const nextStores = await getStores();
-                if (!cancelled) {
-                    setStores(nextStores);
-                    setError(null);
-                }
-            } catch (loadError) {
-                if (!cancelled) {
-                    setError(loadError instanceof Error ? loadError.message : "Unable to load stores");
-                }
-            } finally {
-                if (!cancelled) {
-                    setLoading(false);
-                }
-            }
-        }
-
-        void loadStores();
-
-        return () => {
-            cancelled = true;
-        };
-    }, []);
-
-    return (
+  return (
         <div className="store-map-shell" style={{ height }}>
             {loading ? <div className="store-map-overlay">Loading stores...</div> : null}
             {error ? <div className="store-map-overlay store-map-status-error">{error}</div> : null}

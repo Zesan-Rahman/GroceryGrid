@@ -17,10 +17,7 @@ export interface Store {
   parking: string | null;
 }
 
-let storesCache: Store[] | null = null;
-let storesPromise: Promise<Store[]> | null = null;
-
-async function fetchStores(): Promise<Store[]> {
+export async function getStores(): Promise<Store[]> {
   const response = await fetch("/api/stores", {
     credentials: "include",
     headers: {
@@ -32,33 +29,5 @@ async function fetchStores(): Promise<Store[]> {
     throw new Error("Unable to load stores");
   }
 
-  const stores = (await response.json()) as Store[];
-  storesCache = stores;
-  return stores;
-}
-
-export function getCachedStores(): Store[] | null {
-  return storesCache;
-}
-
-export function prefetchStores(): Promise<Store[]> {
-  if (storesCache) {
-    return Promise.resolve(storesCache);
-  }
-
-  if (!storesPromise) {
-    storesPromise = fetchStores().finally(() => {
-      storesPromise = null;
-    });
-  }
-
-  return storesPromise;
-}
-
-export async function getStores(): Promise<Store[]> {
-  if (storesCache) {
-    return storesCache;
-  }
-
-  return prefetchStores();
+  return (await response.json()) as Store[];
 }

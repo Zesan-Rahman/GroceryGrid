@@ -10,7 +10,9 @@ interface NavLink {
 
 interface TeamMember {
   name: string;
-  // bio: string;
+  avatarUrl?: string;
+  role?: string;
+  bio?: string;
 }
 
 // ─── Data (fill these in) ─────────────────────────────────────────────────────
