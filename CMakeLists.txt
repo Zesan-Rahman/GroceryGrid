@@ -19,7 +19,11 @@ endif ()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(${PROJECT_NAME} main.cc)
+add_executable(${PROJECT_NAME} 
+    main.cc
+    controllers/receiptUpload.cc
+    controllers/helpers/receiptUploadHelper.cc
+)
 
 # ##############################################################################
 # If you include the drogon source code locally in your project, use this method
@@ -73,3 +77,6 @@ target_sources(${PROJECT_NAME}
 # ##############################################################################
 
 add_subdirectory(test)
+find_package(nlohmann_json REQUIRED)
+find_package(CURL REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE CURL::libcurl nlohmann_json::nlohmann_json)
