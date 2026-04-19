@@ -68,6 +68,12 @@ const UploadReceipts: React.FC = () => {
     const [storeError, setStoreError] = useState<string | null>(null);
     const [searched, setSearched] = useState(false);
 
+    //Upload to db
+    const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [submitSuccess, setSubmitSuccess] = useState(false);
+
     const lineItems = (scanResult?.lineItems && scanResult.lineItems.length > 0)
         ? scanResult.lineItems
         : (scanResult?.summaryItems && scanResult.summaryItems.length > 0)
@@ -198,6 +204,34 @@ const UploadReceipts: React.FC = () => {
 
     const handleStoreKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") handleStoreSearch();
+    };
+
+    //Upload to db
+    const handleSubmitReceipt = async () => {
+        if (!selectedStore || images.length === 0) return;
+        setSubmitLoading(true);
+        setSubmitError(null);
+        setSubmitSuccess(false);
+
+        try {
+            const formData = new FormData();
+            formData.append("storeName", selectedStore.name);
+            formData.append("storeAddress", selectedStore.address);
+            // send the image filename as the raw_image_file reference
+            formData.append("rawImageFile", images[images.length - 1].file.name);
+
+            const response = await fetch("http://localhost:8080/api/receipts/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!response.ok) throw new Error("Upload failed");
+            setSubmitSuccess(true);
+        } catch (err) {
+            setSubmitError("Failed to upload receipt to database.");
+        } finally {
+            setSubmitLoading(false);
+        }
     };
     return (
         <div className="page">
@@ -367,11 +401,31 @@ const UploadReceipts: React.FC = () => {
                     {storeResults.length > 0 && (
                         <div className="storeResultsList">
                             {storeResults.map((store, index) => (
-                                <div key={index} className="storeCard">
+                                <div
+                                    key={index}
+                                    className={`storeCard ${selectedStore?.name === store.name ? "storeCardSelected" : ""}`}
+                                    onClick={() => setSelectedStore(store)}
+                                >
                                     <p className="storeName">{store.name}</p>
                                     <p className="storeAddress">{store.address}</p>
                                 </div>
                             ))}
+                        </div>
+                    )}
+                    {selectedStore && (
+                        <div className="submitSection">
+                            <p className="selectedStoreText">
+                                Selected store: <strong>{selectedStore.name}</strong>
+                            </p>
+                            <button
+                                onClick={handleSubmitReceipt}
+                                className="submitBtn"
+                                disabled={submitLoading}
+                            >
+                                {submitLoading ? "Uploading..." : "Upload Receipt to Database"}
+                            </button>
+                            {submitError && <p className="searchError">{submitError}</p>}
+                            {submitSuccess && <p className="submitSuccess">Receipt uploaded successfully!</p>}
                         </div>
                     )}
                 </div>

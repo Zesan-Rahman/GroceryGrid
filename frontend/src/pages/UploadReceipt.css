@@ -342,3 +342,53 @@
   color: #666;
   font-size: 0.9rem;
 }
+
+/*Upload to db*/
+.storeCardSelected {
+  border: 2px solid #1565c0;
+  background-color: #e3f2fd;
+}
+
+.storeCard {
+  cursor: pointer;
+  transition: border 0.2s, background-color 0.2s;
+}
+
+.submitSection {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #ececec;
+  text-align: center;
+}
+
+.selectedStoreText {
+  color: #555;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.submitBtn {
+  background-color: #1565c0;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submitBtn:hover {
+  background-color: #0d47a1;
+}
+
+.submitBtn:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.submitSuccess {
+  color: #2e7d32;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
