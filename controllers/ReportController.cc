@@ -231,33 +231,33 @@ void ReportController::listOpenReports(const HttpRequestPtr &req,
     }
 
     dbClient()->execSqlAsync(
-        "select r.report_id, "
+        "select p.entry_id, "
         "       s.name as store_name, "
         "       i.item_name, "
         "       p.logged_price, "
-        "       r.reason_for_report, "
-        "       r.report_timestamp "
+        "       count(r.report_id) as report_count, "
+        "       max(r.report_timestamp) as last_report_timestamp "
         "from reports r "
         "join price_entries p on p.entry_id = r.price_entry_id "
         "join stores s on s.store_id = p.store_id "
         "join items i on i.item_id = p.item_id "
         "where r.resolution_status = $1 "
-        "order by r.report_timestamp asc",
+        "group by p.entry_id, s.name, i.item_name, p.logged_price "
+        "order by max(r.report_timestamp) asc",
         [callbackPtr](const drogon::orm::Result &result) {
             Json::Value reports(Json::arrayValue);
 
             for (const auto &row : result)
             {
                 Json::Value report(Json::objectValue);
-                report["report_id"] = row["report_id"].as<int>();
+                report["entry_id"] = row["entry_id"].as<int>();
                 report["store_name"] = row["store_name"].as<std::string>();
                 report["item_name"] = row["item_name"].as<std::string>();
                 report["reported_price"] =
                     std::atof(row["logged_price"].as<std::string>().c_str());
-                report["reason"] = row["reason_for_report"].isNull()
-                                       ? std::string()
-                                       : row["reason_for_report"].as<std::string>();
-                report["submitted_at"] = row["report_timestamp"].as<std::string>();
+                report["report_count"] = row["report_count"].as<int>();
+                report["last_submitted_at"] =
+                    row["last_report_timestamp"].as<std::string>();
                 reports.append(report);
             }
 
@@ -273,9 +273,95 @@ void ReportController::listOpenReports(const HttpRequestPtr &req,
         std::string(kOpenStatus));
 }
 
+void ReportController::getEntryReports(const HttpRequestPtr &req,
+                                       Callback &&callback,
+                                       int entryId) const
+{
+    auto callbackPtr = std::make_shared<Callback>(std::move(callback));
+    if (!requireAdmin(req, callbackPtr))
+    {
+        return;
+    }
+
+    dbClient()->execSqlAsync(
+        "select p.entry_id, "
+        "       s.name as store_name, "
+        "       i.item_name, "
+        "       p.logged_price, "
+        "       r.report_id, "
+        "       r.reporter_account_id, "
+        "       a.name as reporter_name, "
+        "       a.email as reporter_email, "
+        "       r.reason_for_report, "
+        "       r.report_timestamp "
+        "from reports r "
+        "join price_entries p on p.entry_id = r.price_entry_id "
+        "join stores s on s.store_id = p.store_id "
+        "join items i on i.item_id = p.item_id "
+        "left join accounts a on a.account_id = r.reporter_account_id "
+        "where p.entry_id = $1 and r.resolution_status = $2 "
+        "order by r.report_timestamp asc",
+        [callbackPtr, entryId](const drogon::orm::Result &result) {
+            if (result.empty())
+            {
+                Json::Value body(Json::objectValue);
+                body["success"] = false;
+                body["message"] = "No open reports found for this entry";
+                sendJson(callbackPtr, drogon::k404NotFound, std::move(body));
+                return;
+            }
+
+            Json::Value body(Json::objectValue);
+            body["success"] = true;
+
+            Json::Value entry(Json::objectValue);
+            entry["entry_id"] = entryId;
+            entry["store_name"] = result[0]["store_name"].as<std::string>();
+            entry["item_name"] = result[0]["item_name"].as<std::string>();
+            entry["reported_price"] =
+                std::atof(result[0]["logged_price"].as<std::string>().c_str());
+
+            Json::Value reports(Json::arrayValue);
+            for (const auto &row : result)
+            {
+                Json::Value report(Json::objectValue);
+                report["report_id"] = row["report_id"].as<int>();
+                report["reporter_account_id"] = row["reporter_account_id"].isNull()
+                                                     ? Json::Value()
+                                                     : Json::Value(
+                                                           row["reporter_account_id"].as<int>());
+                report["reporter_name"] = row["reporter_name"].isNull()
+                                               ? Json::Value()
+                                               : Json::Value(
+                                                     row["reporter_name"].as<std::string>());
+                report["reporter_email"] = row["reporter_email"].isNull()
+                                                ? Json::Value()
+                                                : Json::Value(
+                                                      row["reporter_email"].as<std::string>());
+                report["reason"] = row["reason_for_report"].isNull()
+                                       ? std::string()
+                                       : row["reason_for_report"].as<std::string>();
+                report["submitted_at"] = row["report_timestamp"].as<std::string>();
+                reports.append(report);
+            }
+
+            entry["reports"] = reports;
+            body["entry"] = entry;
+            sendJson(callbackPtr, drogon::k200OK, std::move(body));
+        },
+        [callbackPtr](const drogon::orm::DrogonDbException &e) {
+            respondDatabaseError(callbackPtr,
+                                 "Entry reports query failed",
+                                 "Unable to load entry reports",
+                                 e);
+        },
+        entryId,
+        std::string(kOpenStatus));
+}
+
 void ReportController::deleteEntryAndResolve(const HttpRequestPtr &req,
                                              Callback &&callback,
-                                             int reportId) const
+                                             int entryId) const
 {
     auto callbackPtr = std::make_shared<Callback>(std::move(callback));
     if (!requireAdmin(req, callbackPtr))
@@ -287,66 +373,49 @@ void ReportController::deleteEntryAndResolve(const HttpRequestPtr &req,
     auto transaction = dbClient()->newTransaction();
 
     transaction->execSqlAsync(
-        "select price_entry_id, resolution_status "
-        "from reports "
-        "where report_id = $1 "
+        "select entry_id "
+        "from price_entries "
+        "where entry_id = $1 "
+        "and exists ("
+        "    select 1 from reports "
+        "    where price_entry_id = price_entries.entry_id "
+        "      and resolution_status = $2"
+        ") "
         "for update",
-        [callbackPtr, transaction, reportId, adminAccountId](
+        [callbackPtr, transaction, entryId, adminAccountId](
             const drogon::orm::Result &result) {
             if (result.empty())
             {
                 Json::Value body(Json::objectValue);
                 body["success"] = false;
-                body["message"] = "Report not found";
+                body["message"] = "No open reports found for this entry";
                 sendJson(callbackPtr, drogon::k404NotFound, std::move(body));
                 return;
             }
 
-            const auto &row = result[0];
-            if (row["resolution_status"].as<std::string>() != kOpenStatus)
-            {
-                Json::Value body(Json::objectValue);
-                body["success"] = false;
-                body["message"] = "Report has already been reviewed";
-                sendJson(callbackPtr, drogon::k409Conflict, std::move(body));
-                return;
-            }
-
-            const int priceEntryId = row["price_entry_id"].as<int>();
             transaction->execSqlAsync(
-                "update reports "
-                "set resolution_status = case "
-                "        when resolution_status = $1 then $2 "
-                "        else resolution_status "
-                "    end, "
-                "    price_entry_id = null "
-                "where price_entry_id = $3",
-                [callbackPtr, transaction, reportId, adminAccountId, priceEntryId](
+                "with updated as ("
+                "    update reports "
+                "    set resolution_status = $1, "
+                "        price_entry_id = null "
+                "    where price_entry_id = $2 "
+                "      and resolution_status = $3 "
+                "    returning report_id"
+                ") "
+                "insert into admin_reports (admin_account_id, report_id) "
+                "select $4, report_id from updated "
+                "on conflict do nothing",
+                [callbackPtr, transaction, entryId](
                     const drogon::orm::Result &) {
                     transaction->execSqlAsync(
                         "delete from price_entries where entry_id = $1",
-                        [callbackPtr, transaction, reportId, adminAccountId](
+                        [callbackPtr](
                             const drogon::orm::Result &) {
-                            transaction->execSqlAsync(
-                                "insert into admin_reports (admin_account_id, report_id) "
-                                "values ($1, $2) "
-                                "on conflict do nothing",
-                                [callbackPtr](const drogon::orm::Result &) {
-                                    Json::Value body(Json::objectValue);
-                                    body["success"] = true;
-                                    body["message"] =
-                                        "Price entry deleted and report resolved";
-                                    sendJson(
-                                        callbackPtr, drogon::k200OK, std::move(body));
-                                },
-                                [callbackPtr](const drogon::orm::DrogonDbException &e) {
-                                    respondDatabaseError(callbackPtr,
-                                                         "Admin report insert failed",
-                                                         "Unable to resolve report",
-                                                         e);
-                                },
-                                adminAccountId,
-                                reportId);
+                            Json::Value body(Json::objectValue);
+                            body["success"] = true;
+                            body["message"] =
+                                "Price entry deleted and all related reports resolved";
+                            sendJson(callbackPtr, drogon::k200OK, std::move(body));
                         },
                         [callbackPtr](const drogon::orm::DrogonDbException &e) {
                             respondDatabaseError(callbackPtr,
@@ -354,17 +423,18 @@ void ReportController::deleteEntryAndResolve(const HttpRequestPtr &req,
                                                  "Unable to delete price entry",
                                                  e);
                         },
-                        priceEntryId);
+                        entryId);
                 },
                 [callbackPtr](const drogon::orm::DrogonDbException &e) {
                     respondDatabaseError(callbackPtr,
-                                         "Report detach before delete failed",
+                                         "Bulk report resolution before delete failed",
                                          "Unable to resolve report",
                                          e);
                 },
-                std::string(kOpenStatus),
                 std::string(kDeletedStatus),
-                priceEntryId);
+                entryId,
+                std::string(kOpenStatus),
+                adminAccountId);
         },
         [callbackPtr](const drogon::orm::DrogonDbException &e) {
             respondDatabaseError(callbackPtr,
@@ -372,12 +442,13 @@ void ReportController::deleteEntryAndResolve(const HttpRequestPtr &req,
                                  "Unable to resolve report",
                                  e);
         },
-        reportId);
+        entryId,
+        std::string(kOpenStatus));
 }
 
 void ReportController::dismissReport(const HttpRequestPtr &req,
                                      Callback &&callback,
-                                     int reportId) const
+                                     int entryId) const
 {
     auto callbackPtr = std::make_shared<Callback>(std::move(callback));
     if (!requireAdmin(req, callbackPtr))
@@ -389,39 +460,31 @@ void ReportController::dismissReport(const HttpRequestPtr &req,
     auto transaction = dbClient()->newTransaction();
 
     transaction->execSqlAsync(
-        "update reports "
-        "set resolution_status = $1 "
-        "where report_id = $2 and resolution_status = $3 "
+        "with updated as ("
+        "    update reports "
+        "    set resolution_status = $1 "
+        "    where price_entry_id = $2 "
+        "      and resolution_status = $3 "
+        "    returning report_id"
+        ") "
+        "insert into admin_reports (admin_account_id, report_id) "
+        "select $4, report_id from updated "
+        "on conflict do nothing "
         "returning report_id",
-        [callbackPtr, transaction, adminAccountId](const drogon::orm::Result &result) {
+        [callbackPtr](const drogon::orm::Result &result) {
             if (result.empty())
             {
                 Json::Value body(Json::objectValue);
                 body["success"] = false;
-                body["message"] = "Report not found or already reviewed";
+                body["message"] = "No open reports found for this entry";
                 sendJson(callbackPtr, drogon::k404NotFound, std::move(body));
                 return;
             }
 
-            const int resolvedReportId = result[0]["report_id"].as<int>();
-            transaction->execSqlAsync(
-                "insert into admin_reports (admin_account_id, report_id) "
-                "values ($1, $2) "
-                "on conflict do nothing",
-                [callbackPtr](const drogon::orm::Result &) {
-                    Json::Value body(Json::objectValue);
-                    body["success"] = true;
-                    body["message"] = "Report dismissed";
-                    sendJson(callbackPtr, drogon::k200OK, std::move(body));
-                },
-                [callbackPtr](const drogon::orm::DrogonDbException &e) {
-                    respondDatabaseError(callbackPtr,
-                                         "Admin report insert failed",
-                                         "Unable to dismiss report",
-                                         e);
-                },
-                adminAccountId,
-                resolvedReportId);
+            Json::Value body(Json::objectValue);
+            body["success"] = true;
+            body["message"] = "All reports for this entry were dismissed";
+            sendJson(callbackPtr, drogon::k200OK, std::move(body));
         },
         [callbackPtr](const drogon::orm::DrogonDbException &e) {
             respondDatabaseError(callbackPtr,
@@ -430,7 +493,8 @@ void ReportController::dismissReport(const HttpRequestPtr &req,
                                  e);
         },
         std::string(kDismissedStatus),
-        reportId,
-        std::string(kOpenStatus));
+        entryId,
+        std::string(kOpenStatus),
+        adminAccountId);
 }
 }  // namespace api

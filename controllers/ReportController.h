@@ -12,11 +12,14 @@ class ReportController : public drogon::HttpController<ReportController>
     ADD_METHOD_TO(ReportController::listOpenReports,
                   "/api/reports/open",
                   drogon::Get);
+    ADD_METHOD_TO(ReportController::getEntryReports,
+                  "/api/reports/entries/{1}",
+                  drogon::Get);
     ADD_METHOD_TO(ReportController::deleteEntryAndResolve,
-                  "/api/reports/{1}/delete-entry",
+                  "/api/reports/entries/{1}/delete-entry",
                   drogon::Post);
     ADD_METHOD_TO(ReportController::dismissReport,
-                  "/api/reports/{1}/dismiss",
+                  "/api/reports/entries/{1}/dismiss",
                   drogon::Post);
     METHOD_LIST_END
 
@@ -28,14 +31,19 @@ class ReportController : public drogon::HttpController<ReportController>
         const drogon::HttpRequestPtr &req,
         std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
 
+    void getEntryReports(
+        const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback,
+        int entryId) const;
+
     void deleteEntryAndResolve(
         const drogon::HttpRequestPtr &req,
         std::function<void(const drogon::HttpResponsePtr &)> &&callback,
-        int reportId) const;
+        int entryId) const;
 
     void dismissReport(
         const drogon::HttpRequestPtr &req,
         std::function<void(const drogon::HttpResponsePtr &)> &&callback,
-        int reportId) const;
+        int entryId) const;
 };
 }  // namespace api
