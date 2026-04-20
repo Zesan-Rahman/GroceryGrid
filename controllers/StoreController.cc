@@ -112,9 +112,10 @@ void StoreController::viewCatalog(
 
     // selects all the items and prices matching the store_id. if there are
     // multiple entries for an item, that latest is given
-    std::string sql = 
+    std::string sql =
         "SELECT DISTINCT ON (i.item_id) "
-        "   i.item_id, i.item_name, i.category, p.logged_price, p.price_date "
+        "   i.item_id, i.item_name, i.category, "
+        "   p.entry_id, p.store_id, p.logged_price, p.price_date "
         "FROM items i "
         "JOIN price_entries p ON i.item_id = p.item_id "
         "WHERE p.store_id = $1 "
@@ -129,9 +130,11 @@ void StoreController::viewCatalog(
             {
                 Json::Value item(Json::objectValue);
                 item["item_id"] = row["item_id"].as<int>();
+                item["entry_id"] = row["entry_id"].as<int>();
+                item["store_id"] = row["store_id"].as<int>();
                 item["name"] = row["item_name"].as<std::string>();
-                item["category"] = row["category"].isNull() 
-                                    ? "Uncategorized" 
+                item["category"] = row["category"].isNull()
+                                    ? "Uncategorized"
                                     : row["category"].as<std::string>();
                 item["price"] = std::atof(row["logged_price"].as<std::string>().c_str());
                 item["last_updated"] = row["price_date"].as<std::string>();

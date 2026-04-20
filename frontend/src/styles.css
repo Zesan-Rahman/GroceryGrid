@@ -84,6 +84,15 @@ input {
   font: inherit;
 }
 
+textarea {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid #bcc9d8;
+  border-radius: 0.75rem;
+  font: inherit;
+  resize: vertical;
+}
+
 button {
   border: 0;
   border-radius: 0.75rem;
@@ -179,4 +188,84 @@ a {
 
 .store-popup-hours p {
   margin-bottom: 0.25rem;
+}
+
+.catalog-page,
+.admin-page {
+  max-width: 48rem;
+}
+
+.catalog-list,
+.admin-report-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.catalog-entry,
+.admin-report-card {
+  padding: 1rem 1.25rem;
+  border: 1px solid #d8e0ea;
+  border-radius: 0.9rem;
+  background: #fbfcfe;
+}
+
+.catalog-entry p,
+.admin-report-card p {
+  margin-bottom: 0.5rem;
+}
+
+.catalog-entry-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.report-link-button {
+  padding: 0;
+  margin-left: 0.75rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #5f6f89;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.report-panel {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #d8e0ea;
+  border-radius: 0.85rem;
+  background: #ffffff;
+}
+
+.report-panel h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.button-secondary {
+  background: #eef3fb;
+  color: #27406a;
+}
+
+.status-success {
+  color: #17653a;
+  font-weight: 600;
+}
+
+.status-error {
+  color: #9f1f1f;
+  font-weight: 600;
+}
+
+.admin-reports-section {
+  margin-top: 2rem;
 }
