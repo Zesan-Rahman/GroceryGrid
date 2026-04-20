@@ -6,6 +6,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { logout, me, type AuthUser } from "./api/auth";
 import { StoreProvider } from "./context/StoreContext";
 import AdminHome from "./pages/AdminHome";
+import AdminReportEntryPage from "./pages/AdminReportEntryPage";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import Contribute from "./pages/Contribute";
@@ -155,6 +156,10 @@ export default function App() {
 
           <Route element={<ProtectedRoute user={user} allowedRoles={["admin"]} />}>
             <Route path="/admin/home" element={<AdminHome user={user} />} />
+            <Route
+              path="/admin/reports/entries/:entryId"
+              element={<AdminReportEntryPage />}
+            />
           </Route>
 
           <Route

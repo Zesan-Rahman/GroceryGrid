@@ -11,19 +11,37 @@ export interface CatalogReportEntry extends CatalogItemDetails {
   store_id: number;
 }
 
-export interface OpenReport {
-  report_id: number;
+export interface OpenReportEntrySummary {
+  entry_id: number;
   store_name: string;
   item_name: string;
   reported_price: number;
+  report_count: number;
+  last_submitted_at: string;
+}
+
+export interface EntryReport {
+  report_id: number;
+  reporter_account_id: number | null;
+  reporter_name: string | null;
+  reporter_email: string | null;
   reason: string;
   submitted_at: string;
+}
+
+export interface OpenReportEntryDetails {
+  entry_id: number;
+  store_name: string;
+  item_name: string;
+  reported_price: number;
+  reports: EntryReport[];
 }
 
 interface ApiSuccess<T = undefined> {
   success: true;
   message?: string;
-  reports?: OpenReport[];
+  reports?: OpenReportEntrySummary[];
+  entry?: T;
   report?: T;
 }
 
@@ -74,19 +92,28 @@ export async function submitPriceReport(
   });
 }
 
-export async function getOpenReports(): Promise<OpenReport[]> {
+export async function getOpenReportEntries(): Promise<OpenReportEntrySummary[]> {
   const data = await request("/api/reports/open");
   return data.reports ?? [];
 }
 
-export async function deleteReportedEntry(reportId: number): Promise<void> {
-  await request(`/api/reports/${reportId}/delete-entry`, {
+export async function getOpenReportEntry(entryId: number): Promise<OpenReportEntryDetails> {
+  const data = await request<OpenReportEntryDetails>(`/api/reports/entries/${entryId}`);
+  if (!data.entry) {
+    throw new Error("Entry details were not returned");
+  }
+
+  return data.entry;
+}
+
+export async function deleteReportedEntry(entryId: number): Promise<void> {
+  await request(`/api/reports/entries/${entryId}/delete-entry`, {
     method: "POST",
   });
 }
 
-export async function dismissReportedEntry(reportId: number): Promise<void> {
-  await request(`/api/reports/${reportId}/dismiss`, {
+export async function dismissReportedEntry(entryId: number): Promise<void> {
+  await request(`/api/reports/entries/${entryId}/dismiss`, {
     method: "POST",
   });
 }

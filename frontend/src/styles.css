@@ -269,3 +269,14 @@ a {
 .admin-reports-section {
   margin-top: 2rem;
 }
+
+.admin-entry-review {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-review-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
