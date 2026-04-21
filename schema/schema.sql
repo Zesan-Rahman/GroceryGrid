@@ -33,7 +33,7 @@ CREATE TABLE admins (
 
 CREATE TABLE items (
     item_id      SERIAL PRIMARY KEY,
-    item_name    VARCHAR(255) NOT NULL,
+    item_name    VARCHAR(255) UNIQUE NOT NULL,
     category     VARCHAR(100),
     image_path   TEXT
 );
