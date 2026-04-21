@@ -8,6 +8,9 @@
 using namespace drogon;
 using namespace drogon::orm;
 
+static const std::string allowedOriginRoute =
+    std::getenv("ALLOWED_ORIGIN") ? std::getenv("ALLOWED_ORIGIN") : "http://localhost:5173";
+
 void StoreController::search(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {
     std::string query = req->getParameter("q");
 
@@ -29,7 +32,7 @@ void StoreController::search(const HttpRequestPtr& req, std::function<void(const
             }
             auto resp = HttpResponse::newHttpResponse();
             resp->setStatusCode(k200OK);
-            resp->addHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+            resp->addHeader("Access-Control-Allow-Origin", allowedOriginRoute);
             resp->addHeader("Content-Type", "application/json");
             resp->setBody(jsonArray.dump());
             callback(resp);
@@ -38,7 +41,7 @@ void StoreController::search(const HttpRequestPtr& req, std::function<void(const
             std::cout << "DB error: " << e.base().what() << std::endl;
             auto resp = HttpResponse::newHttpResponse();
             resp->setStatusCode(k500InternalServerError);
-            resp->addHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+            resp->addHeader("Access-Control-Allow-Origin", allowedOriginRoute);
             resp->setBody("{\"error\":\"Database error\"}");
             callback(resp);
         },
@@ -48,7 +51,7 @@ void StoreController::search(const HttpRequestPtr& req, std::function<void(const
 void StoreController::options(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {
     auto resp = HttpResponse::newHttpResponse();
     resp->setStatusCode(k200OK);
-    resp->addHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+    resp->addHeader("Access-Control-Allow-Origin", allowedOriginRoute);
     resp->addHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
     resp->addHeader("Access-Control-Allow-Headers", "Content-Type");
     callback(resp);

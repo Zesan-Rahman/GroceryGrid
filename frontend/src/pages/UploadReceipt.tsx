@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./UploadReceipt.css";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
+const siteLink = "http://localhost:8080";
 
 interface UploadedReceipt {
     file: File;
@@ -117,10 +118,11 @@ const UploadReceipts: React.FC = () => {
 
         const formData = new FormData();
         // Only send the most recently added image to TabScanner
+
         formData.append("images", images[images.length - 1].file);
 
         try {
-            const response = await fetch("http://localhost:8080/api/upload", {
+            const response = await fetch(`${siteLink}/api/upload`, {
                 method: "POST",
                 body: formData,
             });
@@ -141,7 +143,7 @@ const UploadReceipts: React.FC = () => {
                 setUploadStatus(null);
             }
         } catch (err) {
-            setError("Error connecting to server. Is Drogon running?");
+            setError("Error connecting to server: Check drogon running");
             setUploadStatus(null);
         } finally {
             setLoading(false);
@@ -190,13 +192,13 @@ const UploadReceipts: React.FC = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:8080/api/stores/search?q=${encodeURIComponent(storeQuery)}`
+                `${siteLink}/api/stores/search?q=${encodeURIComponent(storeQuery)}`
             );
             if (!response.ok) throw new Error("Search failed");
             const data: Store[] = await response.json();
             setStoreResults(data);
         } catch (err) {
-            setStoreError("Error connecting to server. Is Drogon running?");
+            setStoreError("Error connecting to server: Check Drogon running");
         } finally {
             setStoreLoading(false);
         }
@@ -217,10 +219,17 @@ const UploadReceipts: React.FC = () => {
             const formData = new FormData();
             formData.append("storeName", selectedStore.name);
             formData.append("storeAddress", selectedStore.address);
-            // send the image filename as the raw_image_file reference
             formData.append("rawImageFile", images[images.length - 1].file.name);
+            // send items as a JSON string
+            formData.append("items", JSON.stringify(items.map((item) => ({
+                descClean: item.descClean,
+                price: item.editedPrice !== undefined
+                    ? item.editedPrice
+                    : item.qty > 0 ? item.price / item.qty : item.price,
+                date: scanResult?.date ?? null,
+            }))));
 
-            const response = await fetch("http://localhost:8080/api/receipts/upload", {
+            const response = await fetch(`${siteLink}/api/receipts/upload`, {
                 method: "POST",
                 body: formData,
             });
