@@ -18,6 +18,7 @@ using namespace drogon_model::main;
 const std::string Items::Cols::_item_id = "\"item_id\"";
 const std::string Items::Cols::_item_name = "\"item_name\"";
 const std::string Items::Cols::_category = "\"category\"";
+const std::string Items::Cols::_image_path = "\"image_path\"";
 const std::string Items::primaryKeyName = "item_id";
 const bool Items::hasPrimaryKey = true;
 const std::string Items::tableName = "\"items\"";
@@ -25,7 +26,8 @@ const std::string Items::tableName = "\"items\"";
 const std::vector<typename Items::MetaData> Items::metaData_={
 {"item_id","int32_t","integer",4,1,1,1},
 {"item_name","std::string","character varying",255,0,0,1},
-{"category","std::string","character varying",100,0,0,0}
+{"category","std::string","character varying",100,0,0,0},
+{"image_path","std::string","text",0,0,0,0}
 };
 const std::string &Items::getColumnName(size_t index) noexcept(false)
 {
@@ -48,11 +50,15 @@ Items::Items(const Row &r, const ssize_t indexOffset) noexcept
         {
             category_=std::make_shared<std::string>(r["category"].as<std::string>());
         }
+        if(!r["image_path"].isNull())
+        {
+            imagePath_=std::make_shared<std::string>(r["image_path"].as<std::string>());
+        }
     }
     else
     {
         size_t offset = (size_t)indexOffset;
-        if(offset + 3 > r.size())
+        if(offset + 4 > r.size())
         {
             LOG_FATAL << "Invalid SQL result for this model";
             return;
@@ -73,13 +79,18 @@ Items::Items(const Row &r, const ssize_t indexOffset) noexcept
         {
             category_=std::make_shared<std::string>(r[index].as<std::string>());
         }
+        index = offset + 3;
+        if(!r[index].isNull())
+        {
+            imagePath_=std::make_shared<std::string>(r[index].as<std::string>());
+        }
     }
 
 }
 
 Items::Items(const Json::Value &pJson, const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 3)
+    if(pMasqueradingVector.size() != 4)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -106,6 +117,14 @@ Items::Items(const Json::Value &pJson, const std::vector<std::string> &pMasquera
         if(!pJson[pMasqueradingVector[2]].isNull())
         {
             category_=std::make_shared<std::string>(pJson[pMasqueradingVector[2]].asString());
+        }
+    }
+    if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
+    {
+        dirtyFlag_[3] = true;
+        if(!pJson[pMasqueradingVector[3]].isNull())
+        {
+            imagePath_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
         }
     }
 }
@@ -136,12 +155,20 @@ Items::Items(const Json::Value &pJson) noexcept(false)
             category_=std::make_shared<std::string>(pJson["category"].asString());
         }
     }
+    if(pJson.isMember("image_path"))
+    {
+        dirtyFlag_[3]=true;
+        if(!pJson["image_path"].isNull())
+        {
+            imagePath_=std::make_shared<std::string>(pJson["image_path"].asString());
+        }
+    }
 }
 
 void Items::updateByMasqueradedJson(const Json::Value &pJson,
                                             const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 3)
+    if(pMasqueradingVector.size() != 4)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -169,6 +196,14 @@ void Items::updateByMasqueradedJson(const Json::Value &pJson,
             category_=std::make_shared<std::string>(pJson[pMasqueradingVector[2]].asString());
         }
     }
+    if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
+    {
+        dirtyFlag_[3] = true;
+        if(!pJson[pMasqueradingVector[3]].isNull())
+        {
+            imagePath_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
+        }
+    }
 }
 
 void Items::updateByJson(const Json::Value &pJson) noexcept(false)
@@ -194,6 +229,14 @@ void Items::updateByJson(const Json::Value &pJson) noexcept(false)
         if(!pJson["category"].isNull())
         {
             category_=std::make_shared<std::string>(pJson["category"].asString());
+        }
+    }
+    if(pJson.isMember("image_path"))
+    {
+        dirtyFlag_[3] = true;
+        if(!pJson["image_path"].isNull())
+        {
+            imagePath_=std::make_shared<std::string>(pJson["image_path"].asString());
         }
     }
 }
@@ -269,6 +312,33 @@ void Items::setCategoryToNull() noexcept
     dirtyFlag_[2] = true;
 }
 
+const std::string &Items::getValueOfImagePath() const noexcept
+{
+    static const std::string defaultValue = std::string();
+    if(imagePath_)
+        return *imagePath_;
+    return defaultValue;
+}
+const std::shared_ptr<std::string> &Items::getImagePath() const noexcept
+{
+    return imagePath_;
+}
+void Items::setImagePath(const std::string &pImagePath) noexcept
+{
+    imagePath_ = std::make_shared<std::string>(pImagePath);
+    dirtyFlag_[3] = true;
+}
+void Items::setImagePath(std::string &&pImagePath) noexcept
+{
+    imagePath_ = std::make_shared<std::string>(std::move(pImagePath));
+    dirtyFlag_[3] = true;
+}
+void Items::setImagePathToNull() noexcept
+{
+    imagePath_.reset();
+    dirtyFlag_[3] = true;
+}
+
 void Items::updateId(const uint64_t id)
 {
 }
@@ -277,7 +347,8 @@ const std::vector<std::string> &Items::insertColumns() noexcept
 {
     static const std::vector<std::string> inCols={
         "item_name",
-        "category"
+        "category",
+        "image_path"
     };
     return inCols;
 }
@@ -306,6 +377,17 @@ void Items::outputArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
+    if(dirtyFlag_[3])
+    {
+        if(getImagePath())
+        {
+            binder << getValueOfImagePath();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
 }
 
 const std::vector<std::string> Items::updateColumns() const
@@ -318,6 +400,10 @@ const std::vector<std::string> Items::updateColumns() const
     if(dirtyFlag_[2])
     {
         ret.push_back(getColumnName(2));
+    }
+    if(dirtyFlag_[3])
+    {
+        ret.push_back(getColumnName(3));
     }
     return ret;
 }
@@ -340,6 +426,17 @@ void Items::updateArgs(drogon::orm::internal::SqlBinder &binder) const
         if(getCategory())
         {
             binder << getValueOfCategory();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[3])
+    {
+        if(getImagePath())
+        {
+            binder << getValueOfImagePath();
         }
         else
         {
@@ -374,6 +471,14 @@ Json::Value Items::toJson() const
     {
         ret["category"]=Json::Value();
     }
+    if(getImagePath())
+    {
+        ret["image_path"]=getValueOfImagePath();
+    }
+    else
+    {
+        ret["image_path"]=Json::Value();
+    }
     return ret;
 }
 
@@ -386,7 +491,7 @@ Json::Value Items::toMasqueradedJson(
     const std::vector<std::string> &pMasqueradingVector) const
 {
     Json::Value ret;
-    if(pMasqueradingVector.size() == 3)
+    if(pMasqueradingVector.size() == 4)
     {
         if(!pMasqueradingVector[0].empty())
         {
@@ -421,6 +526,17 @@ Json::Value Items::toMasqueradedJson(
                 ret[pMasqueradingVector[2]]=Json::Value();
             }
         }
+        if(!pMasqueradingVector[3].empty())
+        {
+            if(getImagePath())
+            {
+                ret[pMasqueradingVector[3]]=getValueOfImagePath();
+            }
+            else
+            {
+                ret[pMasqueradingVector[3]]=Json::Value();
+            }
+        }
         return ret;
     }
     LOG_ERROR << "Masquerade failed";
@@ -448,6 +564,14 @@ Json::Value Items::toMasqueradedJson(
     {
         ret["category"]=Json::Value();
     }
+    if(getImagePath())
+    {
+        ret["image_path"]=getValueOfImagePath();
+    }
+    else
+    {
+        ret["image_path"]=Json::Value();
+    }
     return ret;
 }
 
@@ -473,13 +597,18 @@ bool Items::validateJsonForCreation(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(2, "category", pJson["category"], err, true))
             return false;
     }
+    if(pJson.isMember("image_path"))
+    {
+        if(!validJsonOfField(3, "image_path", pJson["image_path"], err, true))
+            return false;
+    }
     return true;
 }
 bool Items::validateMasqueradedJsonForCreation(const Json::Value &pJson,
                                                const std::vector<std::string> &pMasqueradingVector,
                                                std::string &err)
 {
-    if(pMasqueradingVector.size() != 3)
+    if(pMasqueradingVector.size() != 4)
     {
         err = "Bad masquerading vector";
         return false;
@@ -514,6 +643,14 @@ bool Items::validateMasqueradedJsonForCreation(const Json::Value &pJson,
                   return false;
           }
       }
+      if(!pMasqueradingVector[3].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[3]))
+          {
+              if(!validJsonOfField(3, pMasqueradingVector[3], pJson[pMasqueradingVector[3]], err, true))
+                  return false;
+          }
+      }
     }
     catch(const Json::LogicError &e)
     {
@@ -544,13 +681,18 @@ bool Items::validateJsonForUpdate(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(2, "category", pJson["category"], err, false))
             return false;
     }
+    if(pJson.isMember("image_path"))
+    {
+        if(!validJsonOfField(3, "image_path", pJson["image_path"], err, false))
+            return false;
+    }
     return true;
 }
 bool Items::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
                                              const std::vector<std::string> &pMasqueradingVector,
                                              std::string &err)
 {
-    if(pMasqueradingVector.size() != 3)
+    if(pMasqueradingVector.size() != 4)
     {
         err = "Bad masquerading vector";
         return false;
@@ -574,6 +716,11 @@ bool Items::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
       if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
       {
           if(!validJsonOfField(2, pMasqueradingVector[2], pJson[pMasqueradingVector[2]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
+      {
+          if(!validJsonOfField(3, pMasqueradingVector[3], pJson[pMasqueradingVector[3]], err, false))
               return false;
       }
     }
@@ -645,6 +792,17 @@ bool Items::validJsonOfField(size_t index,
                 err="String length exceeds limit for the " +
                     fieldName +
                     " field (the maximum value is 100)";
+                return false;
+            }
+            break;
+        case 3:
+            if(pJson.isNull())
+            {
+                return true;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
                 return false;
             }
             break;
