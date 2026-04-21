@@ -1,282 +1,430 @@
 :root {
-  color: #172033;
-  background: #f4f7fb;
-  font-family: "Segoe UI", sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+    color: #172033;
+    background: #f4f7fb;
+    font-family: "Segoe UI", sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
 }
 
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 body {
-  margin: 0;
-  min-width: 320px;
+    margin: 0;
+    min-width: 320px;
 }
 
 #root {
-  min-height: 100vh;
+    min-height: 100vh;
 }
 
 html,
 body,
 #root {
-  height: 100%;
+    height: 100%;
 }
 
+/* --- Navigation --- */
 .nav-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  background: #ffffff;
-  border-bottom: 1px solid #d8e0ea;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: #ffffff;
+    border-bottom: 1px solid #d8e0ea;
 }
 
 .nav-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .nav-links a {
-  text-decoration: none;
-  font-weight: 600;
+    text-decoration: none;
+    font-weight: 600;
 }
 
 .nav-logout {
-  margin-left: auto;
+    margin-left: auto;
 }
 
+/* --- Base Layout & Typography --- */
 main {
-  max-width: 28rem;
-  margin: 4rem auto;
-  padding: 2rem;
-  background: #ffffff;
-  border: 1px solid #d8e0ea;
-  border-radius: 1rem;
-  box-shadow: 0 20px 50px rgba(25, 40, 72, 0.08);
+    max-width: 28rem;
+    margin: 4rem auto;
+    padding: 2rem;
+    background: #ffffff;
+    border: 1px solid #d8e0ea;
+    border-radius: 1rem;
+    box-shadow: 0 20px 50px rgba(25, 40, 72, 0.08);
 }
 
 h1 {
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-}
-
-form {
-  display: grid;
-  gap: 1rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.375rem;
-  font-weight: 600;
-}
-
-input {
-  width: 100%;
-  padding: 0.75rem 0.875rem;
-  border: 1px solid #bcc9d8;
-  border-radius: 0.75rem;
-  font: inherit;
-}
-
-textarea {
-  width: 100%;
-  padding: 0.75rem 0.875rem;
-  border: 1px solid #bcc9d8;
-  border-radius: 0.75rem;
-  font: inherit;
-  resize: vertical;
-}
-
-button {
-  border: 0;
-  border-radius: 0.75rem;
-  padding: 0.85rem 1rem;
-  background: #2056d6;
-  color: #ffffff;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.65;
-  cursor: default;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
 }
 
 a {
-  color: #2056d6;
+    color: #2056d6;
 }
 
+/* --- Forms --- */
+form {
+    display: grid;
+    gap: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.375rem;
+    font-weight: 600;
+}
+
+input {
+    width: 100%;
+    padding: 0.75rem 0.875rem;
+    border: 1px solid #bcc9d8;
+    border-radius: 0.75rem;
+    font: inherit;
+}
+
+textarea {
+    width: 100%;
+    padding: 0.75rem 0.875rem;
+    border: 1px solid #bcc9d8;
+    border-radius: 0.75rem;
+    font: inherit;
+    resize: vertical;
+}
+
+button {
+    border: 0;
+    border-radius: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: #2056d6;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+
+.button-secondary {
+    background: #eef3fb;
+    color: #27406a;
+}
+
+/* --- Home / Map Pages --- */
 .home-page {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .map-home {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  overflow: hidden;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .store-map-shell {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  width: 100%;
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
 }
 
 .store-map {
-  height: 100%;
-  width: 100%;
+    height: 100%;
+    width: 100%;
 }
 
 .store-map-status,
 .store-map-overlay {
-  display: grid;
-  place-items: center;
-  padding: 0.75rem 1rem;
-  background: rgba(234, 240, 247, 0.92);
-  color: #31405e;
-  font-weight: 600;
-  z-index: 500;
+    display: grid;
+    place-items: center;
+    padding: 0.75rem 1rem;
+    background: rgba(234, 240, 247, 0.92);
+    color: #31405e;
+    font-weight: 600;
+    z-index: 500;
 }
 
 .store-map-overlay {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  border: 1px solid #d8e0ea;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 30px rgba(25, 40, 72, 0.12);
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    border: 1px solid #d8e0ea;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 30px rgba(25, 40, 72, 0.12);
 }
 
 .store-map-status-error {
-  color: #8f1d1d;
+    color: #8f1d1d;
 }
 
 .store-popup {
-  min-width: 240px;
+    min-width: 240px;
 }
 
 .store-popup h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1rem;
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
 }
 
 .store-popup p {
-  margin: 0 0 0.5rem;
+    margin: 0 0 0.5rem;
 }
 
 .store-popup-hours {
-  margin: 0.75rem 0;
+    margin: 0.75rem 0;
 }
 
 .store-popup-hours p {
-  margin-bottom: 0.25rem;
+    margin-bottom: 0.25rem;
 }
 
+/* --- Info Page Styles (From original styles.css) --- */
+.info-page {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #f4f7fb 0%, #eef4f9 42%, #f8fbfd 100%);
+}
+
+.info-shell {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+}
+
+.info-card {
+    max-width: none;
+    margin: 0;
+    padding: 2.5rem;
+    background: #ffffff;
+    border: 1px solid #d8e0ea;
+    border-radius: 1.25rem;
+    box-shadow: 0 20px 50px rgba(25, 40, 72, 0.08);
+}
+
+.info-hero {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+.info-eyebrow {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #2056d6;
+}
+
+.info-hero h1 {
+    margin: 0;
+}
+
+.info-lead {
+    font-size: 1.05rem;
+    color: #31405e;
+}
+
+.info-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.info-section {
+    padding-top: 1.5rem;
+    border-top: 1px solid #e3e9f0;
+}
+
+.info-section h2,
+.info-section h3 {
+    margin: 0 0 0.75rem;
+}
+
+.info-section p+p {
+    margin-top: 0.85rem;
+}
+
+.info-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: #31405e;
+}
+
+.info-list li+li {
+    margin-top: 0.6rem;
+}
+
+.info-steps {
+    display: grid;
+    gap: 1rem;
+}
+
+.info-step {
+    padding: 1rem 1.1rem;
+    background: #f6f9fc;
+    border: 1px solid #d8e0ea;
+    border-radius: 0.9rem;
+}
+
+.info-step strong {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: #172033;
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1rem;
+}
+
+.team-card {
+    padding: 1.25rem;
+    background: #f6f9fc;
+    border: 1px solid #d8e0ea;
+    border-radius: 1rem;
+    text-align: center;
+}
+
+.team-avatar {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 0.9rem;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: #2056d6;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.team-card h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.info-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e3e9f0;
+    color: #5d6b82;
+}
+
+/* --- Catalog & Admin Pages (From merged.css) --- */
 .catalog-page,
 .admin-page {
-  max-width: 48rem;
+    max-width: 48rem;
 }
 
 .catalog-list,
 .admin-report-list {
-  display: grid;
-  gap: 1rem;
+    display: grid;
+    gap: 1rem;
 }
 
 .catalog-entry,
 .admin-report-card {
-  padding: 1rem 1.25rem;
-  border: 1px solid #d8e0ea;
-  border-radius: 0.9rem;
-  background: #fbfcfe;
+    padding: 1rem 1.25rem;
+    border: 1px solid #d8e0ea;
+    border-radius: 0.9rem;
+    background: #fbfcfe;
 }
 
 .catalog-entry p,
 .admin-report-card p {
-  margin-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .catalog-entry-name {
-  font-size: 1.1rem;
-  font-weight: 700;
+    font-size: 1.1rem;
+    font-weight: 700;
 }
 
 .report-link-button {
-  padding: 0;
-  margin-left: 0.75rem;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: #5f6f89;
-  font-size: 0.95rem;
-  font-weight: 600;
-  text-decoration: underline;
+    padding: 0;
+    margin-left: 0.75rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #5f6f89;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: underline;
 }
 
 .report-panel {
-  margin-top: 1rem;
-  padding: 1rem;
-  border: 1px solid #d8e0ea;
-  border-radius: 0.85rem;
-  background: #ffffff;
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid #d8e0ea;
+    border-radius: 0.85rem;
+    background: #ffffff;
 }
 
 .report-panel h2 {
-  margin: 0 0 0.75rem;
-  font-size: 1.1rem;
+    margin: 0 0 0.75rem;
+    font-size: 1.1rem;
 }
 
 .report-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
-}
-
-.button-secondary {
-  background: #eef3fb;
-  color: #27406a;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
 }
 
 .status-success {
-  color: #17653a;
-  font-weight: 600;
+    color: #17653a;
+    font-weight: 600;
 }
 
 .status-error {
-  color: #9f1f1f;
-  font-weight: 600;
+    color: #9f1f1f;
+    font-weight: 600;
 }
 
 .admin-reports-section {
-  margin-top: 2rem;
+    margin-top: 2rem;
 }
 
 .admin-entry-review {
-  display: grid;
-  gap: 1rem;
+    display: grid;
+    gap: 1rem;
 }
 
 .admin-review-link {
-  display: inline-block;
-  margin-top: 0.5rem;
-  font-weight: 600;
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-weight: 600;
+}
+
+/* --- Media Queries --- */
+@media (max-width: 720px) {
+    .info-shell {
+        padding: 1.5rem 1rem 2.5rem;
+    }
+
+    .info-card {
+        padding: 1.5rem;
+    }
 }
