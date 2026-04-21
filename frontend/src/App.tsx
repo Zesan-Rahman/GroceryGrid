@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import MyStorePage from "./pages/MyStorePage";
 import Register from "./pages/Register";
 import StoreCatalogPage from "./pages/StoreCatalogPage";
+import ItemCatalogPage from "./pages/ItemCatalogPage";
 import StoreOwnerHome from "./pages/StoreOwnerHome";
 import UserHome from "./pages/UserHome";
 import { roleHomePath } from "./utils/routes";
@@ -137,6 +138,7 @@ export default function App() {
           >
             <Route path="/about" element={<AboutUs />} />
             <Route path="/contact" element={<ContactUs />} />
+            <Route path="/items" element={<ItemCatalogPage />} />
           </Route>
 
           <Route element={<ProtectedRoute user={user} allowedRoles={["user"]} />}>
