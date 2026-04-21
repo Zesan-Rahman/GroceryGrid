@@ -1,0 +1,160 @@
+/* frontend/src/pages/ItemPage.css */
+.item-page-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.loading-text {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.item-details-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  padding: 30px;
+}
+
+.item-header {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  margin-bottom: 40px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 30px;
+}
+
+.item-detail-image {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.placeholder-image {
+  background-color: #f0f0f0;
+}
+
+.item-info h1 {
+  font-size: 2.5rem;
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.category-badge {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.price-entries-section h2 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #444;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.price-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.price-table th,
+.price-table td {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.price-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.price-table tbody tr {
+  transition: background-color 0.2s;
+}
+
+.price-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.price-cell {
+  font-weight: bold;
+  color: #2e7d32;
+  font-size: 1.1rem;
+}
+
+.store-link {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.store-link:hover {
+  color: #115293;
+  text-decoration: underline;
+}
+
+.no-prices-msg {
+  color: #666;
+  font-style: italic;
+  padding: 20px 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.add-cart-btn {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.add-cart-btn:hover {
+  background-color: #c8e6c9;
+}
+
+.history-btn {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.history-btn:hover {
+  background-color: #e1bee7;
+}
+
+@media (max-width: 600px) {
+  .item-header {
+    flex-direction: column;
+    text-align: center;
+  }
+}

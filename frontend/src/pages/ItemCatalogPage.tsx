@@ -67,7 +67,7 @@ export default function ItemCatalogPage() {
         ) : items.length > 0 ? (
           <div className="items-grid">
             {items.map((item) => (
-              <Link to={`/item/${item.internal_id}`} key={item.internal_id} className="item-card">
+              <Link to={`/items/${item.internal_id}`} key={item.internal_id} className="item-card">
                 {item.image_url ? (
                   <img src={item.image_url} alt={item.item_name} className="item-image" />
                 ) : (
