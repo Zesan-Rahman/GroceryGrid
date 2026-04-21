@@ -23,6 +23,7 @@ add_executable(${PROJECT_NAME}
     main.cc
     controllers/receiptUpload.cc
     controllers/helpers/receiptUploadHelper.cc
+    controllers/StoreSearchController.cc
 )
 
 # ##############################################################################
