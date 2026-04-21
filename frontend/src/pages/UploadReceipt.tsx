@@ -160,7 +160,7 @@ const UploadReceipts: React.FC = () => {
 
     const handleEditSave = (index: number) => {
         const newPrice = parseFloat(editValue);
-        if (!isNaN(newPrice)) {
+        if (!isNaN(newPrice) && newPrice > 0) {
             setItems((prev) => prev.map((item, i) =>
                 i === index ? { ...item, editedPrice: newPrice } : item
             ));
@@ -172,7 +172,7 @@ const UploadReceipts: React.FC = () => {
     const handleAddItem = () => {
         if (!newItemDesc.trim() || !newItemPrice.trim()) return;
         const price = parseFloat(newItemPrice);
-        if (isNaN(price)) return;
+        if (isNaN(price) || price < 0) return;
         const newItem: LineItem = {
             descClean: newItemDesc,
             qty: 1,
@@ -429,7 +429,7 @@ const UploadReceipts: React.FC = () => {
                             <button
                                 onClick={handleSubmitReceipt}
                                 className="submitBtn"
-                                disabled={submitLoading}
+                                disabled={submitLoading || submitSuccess}
                             >
                                 {submitLoading ? "Uploading..." : "Upload Receipt to Database"}
                             </button>
