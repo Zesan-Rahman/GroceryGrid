@@ -180,3 +180,145 @@ a {
 .store-popup-hours p {
   margin-bottom: 0.25rem;
 }
+
+.info-page {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, #f4f7fb 0%, #eef4f9 42%, #f8fbfd 100%);
+}
+
+.info-shell {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.info-card {
+  max-width: none;
+  margin: 0;
+  padding: 2.5rem;
+  background: #ffffff;
+  border: 1px solid #d8e0ea;
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 50px rgba(25, 40, 72, 0.08);
+}
+
+.info-hero {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.info-eyebrow {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #2056d6;
+}
+
+.info-hero h1 {
+  margin: 0;
+}
+
+.info-lead {
+  font-size: 1.05rem;
+  color: #31405e;
+}
+
+.info-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.info-section {
+  padding-top: 1.5rem;
+  border-top: 1px solid #e3e9f0;
+}
+
+.info-section h2,
+.info-section h3 {
+  margin: 0 0 0.75rem;
+}
+
+.info-section p + p {
+  margin-top: 0.85rem;
+}
+
+.info-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #31405e;
+}
+
+.info-list li + li {
+  margin-top: 0.6rem;
+}
+
+.info-steps {
+  display: grid;
+  gap: 1rem;
+}
+
+.info-step {
+  padding: 1rem 1.1rem;
+  background: #f6f9fc;
+  border: 1px solid #d8e0ea;
+  border-radius: 0.9rem;
+}
+
+.info-step strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #172033;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem;
+}
+
+.team-card {
+  padding: 1.25rem;
+  background: #f6f9fc;
+  border: 1px solid #d8e0ea;
+  border-radius: 1rem;
+  text-align: center;
+}
+
+.team-avatar {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 0.9rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #2056d6;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.team-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.info-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e3e9f0;
+  color: #5d6b82;
+}
+
+@media (max-width: 720px) {
+  .info-shell {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+
+  .info-card {
+    padding: 1.5rem;
+  }
+}
