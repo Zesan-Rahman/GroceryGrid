@@ -61,8 +61,8 @@ void ItemController::listItems(
 
     if (searchOpt && !searchOpt.value().empty())
     {
-        std::string sql = "SELECT item_id, item_name, category, image_path FROM items WHERE item_name ILIKE $1 ORDER BY item_name ASC";
-        dbClient()->execSqlAsync(sql, onResult, onError, "%" + searchOpt.value() + "%");
+        std::string sql = "SELECT item_id, item_name, category, image_path FROM items WHERE $1 <% item_name ORDER BY $1 <<-> item_name ASC";
+        dbClient()->execSqlAsync(sql, onResult, onError, searchOpt.value());
     }
     else
     {
