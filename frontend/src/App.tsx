@@ -147,7 +147,6 @@ export default function App() {
           <Route element={<ProtectedRoute user={user} allowedRoles={["user"]} />}>
             <Route path="/user/home" element={<UserHome user={user} />} />
             <Route path="/contribute" element={<Contribute />} />
-            <Route path="/stores/:storeId/catalog" element={<StoreCatalogPage />} />
           </Route>
 
           <Route
@@ -155,6 +154,16 @@ export default function App() {
           >
             <Route path="/store/home" element={<StoreOwnerHome user={user} />} />
             <Route path="/store/page" element={<MyStorePage />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute
+                user={user}
+                allowedRoles={["user", "store_owner"]}
+              />
+            }
+          >
             <Route path="/stores/:storeId/catalog" element={<StoreCatalogPage />} />
           </Route>
 
