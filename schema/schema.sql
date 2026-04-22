@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE TABLE accounts (
     account_id   SERIAL PRIMARY KEY,
     email        VARCHAR(255) UNIQUE NOT NULL,
@@ -34,7 +36,8 @@ CREATE TABLE admins (
 CREATE TABLE items (
     item_id      SERIAL PRIMARY KEY,
     item_name    VARCHAR(255) NOT NULL,
-    category     VARCHAR(100)
+    category     VARCHAR(100),
+    image_path   TEXT
 );
 
 CREATE TABLE receipts (
