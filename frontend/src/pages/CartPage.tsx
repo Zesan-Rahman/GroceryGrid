@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import NavBar from "../components/NavBar";
+import LocationRibbon from "../components/LocationRibbon";
 import { getCart, removeFromCart, type Cart } from "../api/cart";
 
 export default function CartPage() {
@@ -42,6 +43,7 @@ export default function CartPage() {
 
   return (
     <>
+      <LocationRibbon />
       <NavBar />
       <main>
         <h1>My Cart</h1>
