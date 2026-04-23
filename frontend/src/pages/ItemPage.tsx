@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import NavBar from "../components/NavBar";
+import { addToCart } from "../api/cart";
 import "./ItemPage.css";
 
 interface PriceEntry {
@@ -26,6 +27,19 @@ export default function ItemPage() {
   const [item, setItem] = useState<ItemDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // Maps entry_id -> "idle" | "adding" | "added" | "error"
+  const [cartStatus, setCartStatus] = useState<Record<number, string>>({});
+
+  async function handleAddToCart(entryId: number) {
+    if (!item) return;
+    setCartStatus((prev) => ({ ...prev, [entryId]: "adding" }));
+    try {
+      await addToCart(item.internal_id, 1, entryId);
+      setCartStatus((prev) => ({ ...prev, [entryId]: "added" }));
+    } catch {
+      setCartStatus((prev) => ({ ...prev, [entryId]: "error" }));
+    }
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -98,7 +112,19 @@ export default function ItemPage() {
                           <td>{new Date(entry.price_date).toLocaleDateString()}</td>
                           <td>
                             <div className="action-buttons">
-                              <button className="action-btn add-cart-btn" onClick={() => { }}>Add to Cart</button>
+                              <button
+                                className="action-btn add-cart-btn"
+                                disabled={cartStatus[entry.entry_id] === "adding"}
+                                onClick={() => handleAddToCart(entry.entry_id)}
+                              >
+                                {cartStatus[entry.entry_id] === "adding"
+                                  ? "Adding…"
+                                  : cartStatus[entry.entry_id] === "added"
+                                  ? "Added ✓"
+                                  : cartStatus[entry.entry_id] === "error"
+                                  ? "Error — retry"
+                                  : "Add to Cart"}
+                              </button>
                               <button className="action-btn history-btn" onClick={() => { }}>View Price History</button>
                             </div>
                           </td>

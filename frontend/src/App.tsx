@@ -18,6 +18,7 @@ import ItemCatalogPage from "./pages/ItemCatalogPage";
 import ItemPage from "./pages/ItemPage";
 import StoreOwnerHome from "./pages/StoreOwnerHome";
 import UserHome from "./pages/UserHome";
+import CartPage from "./pages/CartPage";
 import { roleHomePath } from "./utils/routes";
 
 const STORAGE_KEY = "grocery-grid-user";
@@ -147,6 +148,7 @@ export default function App() {
           <Route element={<ProtectedRoute user={user} allowedRoles={["user"]} />}>
             <Route path="/user/home" element={<UserHome user={user} />} />
             <Route path="/contribute" element={<Contribute />} />
+            <Route path="/cart" element={<CartPage />} />
           </Route>
 
           <Route
