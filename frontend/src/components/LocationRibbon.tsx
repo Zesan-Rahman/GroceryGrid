@@ -2,14 +2,15 @@ import { useState } from "react";
 import { useLocation } from "../context/LocationContext";
 import "./LocationRibbon.css";
 
-export default function LocationRibbon() {
-  const { location, setLocation } = useLocation();
+interface LocationButtonProps {
+  label?: string;
+  className?: string;
+}
+
+export function LocationButton({ label = "Enable Location", className = "location-ribbon-button" }: LocationButtonProps) {
+  const { setLocation } = useLocation();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  if (location) {
-    return null;
-  }
 
   const handleRequestLocation = () => {
     setLoading(true);
@@ -37,22 +38,33 @@ export default function LocationRibbon() {
   };
 
   return (
+    <>
+      <button
+        className={className}
+        onClick={handleRequestLocation}
+        disabled={loading}
+      >
+        {loading ? "Loading..." : label}
+      </button>
+      {error && <p className="location-ribbon-error" style={{ fontSize: "0.8rem", marginTop: "4px" }}>{error}</p>}
+    </>
+  );
+}
+
+export default function LocationRibbon() {
+  const { location } = useLocation();
+
+  if (location) {
+    return null;
+  }
+
+  return (
     <div className="location-ribbon">
       <div className="location-ribbon-content">
         <p className="location-ribbon-text">
-          {error ? (
-            <span className="location-ribbon-error">Error: {error}</span>
-          ) : (
-            "Enable location to see stores near you"
-          )}
+          Enable location to see stores near you
         </p>
-        <button
-          className="location-ribbon-button"
-          onClick={handleRequestLocation}
-          disabled={loading}
-        >
-          {loading ? "Loading..." : "Enable Location"}
-        </button>
+        <LocationButton />
       </div>
     </div>
   );
