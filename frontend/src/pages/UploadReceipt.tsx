@@ -86,7 +86,10 @@ const UploadReceipts: React.FC = () => {
             const source = (scanResult.lineItems && scanResult.lineItems.length > 0)
                 ? scanResult.lineItems
                 : scanResult.summaryItems ?? [];
-            setItems(source);
+            setItems(source.map((item) => ({
+                ...item,
+                price: item.qty > 0 ? item.price / item.qty : item.price,
+            })));
         }
     }, [scanResult]);
 
@@ -255,7 +258,7 @@ const UploadReceipts: React.FC = () => {
                     onChange={handleFileChange}
                     style={{ display: "none" }}
                 />
-                <span className="uploadText">Click to select images</span>
+                <span className="uploadText">Click to select receipt image from device</span>
             </label>
 
             {/* Image Previews */}
@@ -283,6 +286,7 @@ const UploadReceipts: React.FC = () => {
                     >
                         {loading ? "Processing..." : "Scan Receipt"}
                     </button>
+                    <p> Note: Only the last image uploaded will be scanned</p>
                     {uploadStatus && <p className="statusText">{uploadStatus}</p>}
                 </div>
             )}
@@ -311,12 +315,12 @@ const UploadReceipts: React.FC = () => {
                                 </thead>
                                 <tbody>
                                     {items.map((item, index) => {
-                                        const unitPrice = item.editedPrice !== undefined
-                                            ? item.editedPrice
-                                            : item.qty > 0 ? item.price / item.qty : item.price;
                                         const total = item.editedPrice !== undefined
                                             ? item.editedPrice * (item.qty || 1)
                                             : item.lineTotal;
+                                        const unitPrice = item.editedPrice !== undefined
+                                            ? item.editedPrice
+                                            : total / item.qty;
 
                                         return (
                                             <tr key={index}>
