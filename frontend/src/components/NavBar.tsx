@@ -24,6 +24,7 @@ export default function NavBar() {
       { label: "About Us", to: "/about" },
       { label: "Contact Us", to: "/contact" },
       { label: "Contribute", to: "/contribute" },
+      { label: "Catalog", to: "/items" },
     ];
   } else if (role === "store_owner") {
     links = [
@@ -31,6 +32,7 @@ export default function NavBar() {
       { label: "About Us", to: "/about" },
       { label: "Contact Us", to: "/contact" },
       { label: "My Store Page", to: "/store/page" },
+      { label: "Catalog", to: "/items" },
     ];
   }
 
@@ -48,9 +50,17 @@ export default function NavBar() {
           </Link>
         ))}
       </div>
-      <button type="button" className="nav-logout" onClick={() => void handleLogout()}>
-        Logout
-      </button>
+      <div>
+        {/* TODO: change this class from nav-logout to nav-cart */}
+        {role === "user" && (
+          <button type="button" className="nav-logout" onClick={() => navigate("/cart")}>
+            My Cart
+          </button>
+        )}
+        <button type="button" className="nav-logout" onClick={() => void handleLogout()}>
+          Logout
+        </button>
+      </div>
     </nav>
   );
 }
