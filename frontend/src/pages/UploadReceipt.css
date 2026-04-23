@@ -1,8 +1,10 @@
 .page {
-  max-width: 6400px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   padding: 2rem;
   font-family: Georgia, serif;
+  box-sizing: border-box;
 }
 
 .title {
@@ -109,7 +111,7 @@
   padding: 1.5rem;
   margin-top: 2rem;
   width: 100%;
-  box-sizing: bordex-box;
+  box-sizing: border-box;
   overflow-x: auto;
 }
 
@@ -163,7 +165,7 @@
 }
 
 .lineItemsTable th {
-  text-align: left;
+  text-align: center;
   padding: 0.5rem 0.75rem;
   border-bottom: 2px solid #e5e5e5;
   color: #555;
