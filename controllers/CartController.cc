@@ -63,8 +63,10 @@ void CartController::getCart(const HttpRequestPtr &req, Callback &&callback) con
             item["quantity"]       = row["quantity"].as<int>();
             if (row["logged_price"].isNull()) {
                 item["price"]      = Json::Value(Json::nullValue);
+                item["price_entry_id"] = Json::Value(Json::nullValue);
             } else {
                 item["price"]      = row["logged_price"].as<double>();
+                item["price_entry_id"] = row["price_entry_id"].as<int>();
             }
             if (row["store_name"].isNull()) {
                 item["store_id"]   = Json::Value(Json::nullValue);
@@ -88,7 +90,7 @@ void CartController::getCart(const HttpRequestPtr &req, Callback &&callback) con
 
     dbClient()->execSqlAsync(
         "SELECT i.item_id, i.item_name, i.category, i.image_path, "
-        "ci.quantity, pe.logged_price, s.store_id, s.name AS store_name "
+        "ci.quantity, pe.logged_price, pe.entry_id as price_entry_id, s.store_id, s.name AS store_name "
         "FROM cart_items ci "
         "JOIN items i ON ci.item_id = i.item_id "
         "LEFT JOIN price_entries pe ON ci.price_entry_id = pe.entry_id "
@@ -182,6 +184,132 @@ void CartController::removeItem(const HttpRequestPtr &req, Callback &&callback, 
         onResult, onError, accountIdOpt.value(), itemId);
 }
 
+void CartController::replaceCart(const HttpRequestPtr &req, Callback &&callback) const {
+    auto callbackPtr = std::make_shared<Callback>(std::move(callback));
+    auto accountIdOpt = getAccountId(req);
+
+    if (!accountIdOpt) {
+        Json::Value body;
+        body["message"] = "Not authenticated";
+        sendJson(callbackPtr, drogon::k401Unauthorized, std::move(body));
+        return;
+    }
+
+    auto json = req->getJsonObject();
+    if (!json || !json->isMember("items") || !(*json)["items"].isArray()) {
+        Json::Value body;
+        body["message"] = "Missing or invalid items array in request body";
+        sendJson(callbackPtr, drogon::k400BadRequest, std::move(body));
+        return;
+    }
+
+    int accountId = accountIdOpt.value();
+    auto items = (*json)["items"];
+
+    // Use a transaction to delete old cart items and insert new ones
+    dbClient()->execSqlAsync(
+        "BEGIN",
+        [callbackPtr, accountId, items](const drogon::orm::Result &/*result*/) {
+            // Delete all current items
+            dbClient()->execSqlAsync(
+                "DELETE FROM cart_items WHERE account_id = $1",
+                [callbackPtr, accountId, items](const drogon::orm::Result &/*result*/) {
+                    if (items.empty()) {
+                        dbClient()->execSqlAsync("COMMIT", [callbackPtr](const drogon::orm::Result &/*result*/) {
+                            Json::Value body;
+                            body["message"] = "Cart replaced";
+                            sendJson(callbackPtr, drogon::k200OK, std::move(body));
+                        }, [callbackPtr](const drogon::orm::DrogonDbException &e) {
+                            Json::Value body;
+                            body["message"] = "Failed to commit transaction";
+                            sendJson(callbackPtr, drogon::k500InternalServerError, std::move(body));
+                        });
+                        return;
+                    }
+
+                    // Build bulk insert query
+                    std::string query = "INSERT INTO cart_items (account_id, item_id, quantity, price_entry_id) VALUES ";
+                    std::vector<std::string> params;
+                    int paramIdx = 1;
+
+                    for (Json::Value::ArrayIndex i = 0; i < items.size(); ++i) {
+                        const auto &item = items[i];
+                        int itemId = item["item_id"].asInt();
+                        int quantity = item["quantity"].asInt();
+                        std::string priceEntryIdStr = "NULL";
+                        if (item.isMember("price_entry_id") && !item["price_entry_id"].isNull()) {
+                            priceEntryIdStr = std::to_string(item["price_entry_id"].asInt());
+                        }
+
+                        if (i > 0) query += ", ";
+                        query += "($" + std::to_string(paramIdx++) + ", $" + std::to_string(paramIdx++) + ", $" + std::to_string(paramIdx++) + ", " + priceEntryIdStr + ")";
+                        
+                        params.push_back(std::to_string(accountId));
+                        params.push_back(std::to_string(itemId));
+                        params.push_back(std::to_string(quantity));
+                    }
+
+                    auto onInsertSuccess = [callbackPtr](const drogon::orm::Result &/*result*/) {
+                        dbClient()->execSqlAsync("COMMIT", [callbackPtr](const drogon::orm::Result &/*result*/) {
+                            Json::Value body;
+                            body["message"] = "Cart replaced";
+                            sendJson(callbackPtr, drogon::k200OK, std::move(body));
+                        }, [callbackPtr](const drogon::orm::DrogonDbException &e) {
+                            Json::Value body;
+                            body["message"] = "Failed to commit transaction";
+                            sendJson(callbackPtr, drogon::k500InternalServerError, std::move(body));
+                        });
+                    };
+
+                    auto onInsertError = [callbackPtr](const drogon::orm::DrogonDbException &e) {
+                        dbClient()->execSqlAsync("ROLLBACK", [](const drogon::orm::Result &) {}, [](const drogon::orm::DrogonDbException &) {});
+                        LOG_ERROR << "Failed to insert cart items: " << e.base().what();
+                        Json::Value body;
+                        body["message"] = "Failed to replace cart";
+                        sendJson(callbackPtr, drogon::k500InternalServerError, std::move(body));
+                    };
+
+                    auto client = dbClient();
+                    if (items.size() == 0) {
+                       onInsertSuccess(drogon::orm::Result(nullptr));
+                       return;
+                    }
+                    // Since dynamic parameter count is hard with execSqlAsync variadic templates, we format them safely above because they are just integers
+                    // Actually, simpler to construct the query with inline values since we know they are integers and safe from SQL injection
+                    std::string safeQuery = "INSERT INTO cart_items (account_id, item_id, quantity, price_entry_id) VALUES ";
+                    for (Json::Value::ArrayIndex i = 0; i < items.size(); ++i) {
+                        const auto &item = items[i];
+                        int itemId = item["item_id"].asInt();
+                        int quantity = item["quantity"].asInt();
+                        std::string priceEntryIdStr = "NULL";
+                        if (item.isMember("price_entry_id") && !item["price_entry_id"].isNull()) {
+                            priceEntryIdStr = std::to_string(item["price_entry_id"].asInt());
+                        }
+
+                        if (i > 0) safeQuery += ", ";
+                        safeQuery += "(" + std::to_string(accountId) + ", " + std::to_string(itemId) + ", " + std::to_string(quantity) + ", " + priceEntryIdStr + ")";
+                    }
+                    client->execSqlAsync(safeQuery, onInsertSuccess, onInsertError);
+
+                },
+                [callbackPtr](const drogon::orm::DrogonDbException &e) {
+                    dbClient()->execSqlAsync("ROLLBACK", [](const drogon::orm::Result &) {}, [](const drogon::orm::DrogonDbException &) {});
+                    LOG_ERROR << "Failed to delete cart items: " << e.base().what();
+                    Json::Value body;
+                    body["message"] = "Failed to replace cart";
+                    sendJson(callbackPtr, drogon::k500InternalServerError, std::move(body));
+                },
+                accountId);
+        },
+        [callbackPtr](const drogon::orm::DrogonDbException &e) {
+            LOG_ERROR << "Failed to begin transaction: " << e.base().what();
+            Json::Value body;
+            body["message"] = "Failed to replace cart";
+            sendJson(callbackPtr, drogon::k500InternalServerError, std::move(body));
+        }
+    );
+}
+
 void CartController::optimizeCart(const HttpRequestPtr &req, Callback &&callback) const {
     auto callbackPtr = std::make_shared<Callback>(std::move(callback));
     auto accountIdOpt = getAccountId(req);
@@ -234,8 +362,11 @@ void CartController::optimizeCart(const HttpRequestPtr &req, Callback &&callback
         // Group rows by item_id; for each item keep the cheapest in-range entry.
         // We use a map: item_id -> best row index (-1 = none found yet).
         struct BestEntry {
-            int    rowIdx   = -1;
-            double price    = std::numeric_limits<double>::max();
+            bool   found        = false;
+            double price        = std::numeric_limits<double>::max();
+            int    priceEntryId = 0;
+            int    storeId      = 0;
+            std::string storeName;
         };
         std::map<int, BestEntry> bestPerItem;
 
@@ -259,10 +390,12 @@ void CartController::optimizeCart(const HttpRequestPtr &req, Callback &&callback
                 auto &best = bestPerItem[itemId];
                 if (price < best.price) {
                     best.price  = price;
-                    best.rowIdx = idx;
+                    best.found  = true;
+                    best.priceEntryId = row["price_entry_id"].as<int>();
+                    best.storeId      = row["store_id"].as<int>();
+                    best.storeName    = row["store_name"].as<std::string>();
                 }
             }
-            ++idx;
         }
 
         // Build a second pass: collect item metadata from the result set.
@@ -287,10 +420,7 @@ void CartController::optimizeCart(const HttpRequestPtr &req, Callback &&callback
             }
         }
 
-        // Assemble the response. Rows are indexed so we can look up winner.
-        std::vector<const drogon::orm::Row*> rowPtrs;
-        rowPtrs.reserve(result.size());
-        for (const auto &row : result) { rowPtrs.push_back(&row); }
+
 
         Json::Value cart(Json::objectValue);
         cart["account_id"] = accountId;
@@ -305,13 +435,15 @@ void CartController::optimizeCart(const HttpRequestPtr &req, Callback &&callback
             item["quantity"]    = meta.quantity;
 
             auto it = bestPerItem.find(itemId);
-            if (it != bestPerItem.end() && it->second.rowIdx >= 0) {
-                const auto &best = *rowPtrs[static_cast<size_t>(it->second.rowIdx)];
-                item["price"]      = it->second.price;
-                item["store_id"]   = best["store_id"].as<int>();
-                item["store_name"] = best["store_name"].as<std::string>();
+            if (it != bestPerItem.end() && it->second.found) {
+                const auto &best = it->second;
+                item["price"]      = best.price;
+                item["price_entry_id"] = best.priceEntryId;
+                item["store_id"]   = best.storeId;
+                item["store_name"] = best.storeName;
             } else {
                 item["price"]      = Json::Value(Json::nullValue);
+                item["price_entry_id"] = Json::Value(Json::nullValue);
                 item["store_id"]   = Json::Value(Json::nullValue);
                 item["store_name"] = Json::Value(Json::nullValue);
             }
