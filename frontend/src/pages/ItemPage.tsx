@@ -35,7 +35,19 @@ export default function ItemPage() {
     setCartStatus((prev) => ({ ...prev, [entryId]: "adding" }));
     try {
       await addToCart(item.internal_id, 1, entryId);
-      setCartStatus((prev) => ({ ...prev, [entryId]: "added" }));
+      setCartStatus((prev) => {
+        const next = { ...prev };
+        // Reset any other entries that were previously "added"
+        // because the rows overwrite each other in the cart
+        Object.keys(next).forEach((id) => {
+          const numId = Number(id);
+          if (numId !== entryId && next[numId] === "added") {
+            next[numId] = "idle";
+          }
+        });
+        next[entryId] = "added";
+        return next;
+      });
     } catch {
       setCartStatus((prev) => ({ ...prev, [entryId]: "error" }));
     }
@@ -114,7 +126,7 @@ export default function ItemPage() {
                             <div className="action-buttons">
                               <button
                                 className="action-btn add-cart-btn"
-                                disabled={cartStatus[entry.entry_id] === "adding"}
+                                disabled={cartStatus[entry.entry_id] === "adding" || cartStatus[entry.entry_id] === "added"}
                                 onClick={() => handleAddToCart(entry.entry_id)}
                               >
                                 {cartStatus[entry.entry_id] === "adding"
