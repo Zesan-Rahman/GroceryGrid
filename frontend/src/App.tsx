@@ -6,6 +6,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { logout, me, type AuthUser } from "./api/auth";
 import { StoreProvider } from "./context/StoreContext";
 import AdminHome from "./pages/AdminHome";
+import AdminReportEntryPage from "./pages/AdminReportEntryPage";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import Contribute from "./pages/Contribute";
@@ -151,7 +152,6 @@ export default function App() {
           >
             <Route path="/user/home" element={<UserHome user={user} />} />
             <Route path="/contribute" element={<Contribute />} />
-            <Route path="/stores/:storeId/catalog" element={<StoreCatalogPage />} />
           </Route>
 
           <Route
@@ -159,11 +159,25 @@ export default function App() {
           >
             <Route path="/store/home" element={<StoreOwnerHome user={user} />} />
             <Route path="/store/page" element={<MyStorePage />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute
+                user={user}
+                allowedRoles={["user", "store_owner"]}
+              />
+            }
+          >
             <Route path="/stores/:storeId/catalog" element={<StoreCatalogPage />} />
           </Route>
 
           <Route element={<ProtectedRoute user={user} allowedRoles={["admin"]} />}>
             <Route path="/admin/home" element={<AdminHome user={user} />} />
+            <Route
+              path="/admin/reports/entries/:entryId"
+              element={<AdminReportEntryPage />}
+            />
           </Route>
 
           <Route
