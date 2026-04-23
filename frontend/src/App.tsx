@@ -144,7 +144,11 @@ export default function App() {
             <Route path="/items/:id" element={<ItemPage />} />
           </Route>
 
-          <Route element={<ProtectedRoute user={user} allowedRoles={["user"]} />}>
+          <Route
+            element={
+              <ProtectedRoute user={user} allowedRoles={["user"]} />
+            }
+          >
             <Route path="/user/home" element={<UserHome user={user} />} />
             <Route path="/contribute" element={<Contribute />} />
             <Route path="/stores/:storeId/catalog" element={<StoreCatalogPage />} />
