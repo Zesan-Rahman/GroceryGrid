@@ -129,6 +129,9 @@ export default function App() {
             element={user ? <Navigate to={roleHomePath(user.role)} replace /> : <Register />}
           />
 
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<ContactUs />} />
+
           <Route
             element={
               <ProtectedRoute
@@ -137,8 +140,6 @@ export default function App() {
               />
             }
           >
-            <Route path="/about" element={<AboutUs />} />
-            <Route path="/contact" element={<ContactUs />} />
             <Route path="/items" element={<ItemCatalogPage />} />
             <Route path="/items/:id" element={<ItemPage />} />
           </Route>

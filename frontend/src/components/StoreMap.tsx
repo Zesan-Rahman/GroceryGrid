@@ -44,7 +44,7 @@ function formatHours(hours: StoreHours) {
     return DAY_ORDER.map(([key, label]) => {
         const entry = hours[key];
         const value =
-            entry?.open && entry?.close ? `${entry.open} - ${entry.close}` : "Closed";
+            entry?.open && entry?.close ? `${entry.open} - ${entry.close}` : "Not Listed";
 
         return { key, label, value };
     });
@@ -145,13 +145,13 @@ function StoreClusters({ stores, onViewCatalog }: StoreClustersProps) {
 }
 
 export default function StoreMap({ height = "100%" }: StoreMapProps) {
-  const navigate = useNavigate();
-  const { stores, loading, error } = useStores();
-  const handleViewCatalog = useEffectEvent((storeId: number) => {
-    navigate(`/stores/${storeId}/catalog`);
-  });
+    const navigate = useNavigate();
+    const { stores, loading, error } = useStores();
+    const handleViewCatalog = useEffectEvent((storeId: number) => {
+        navigate(`/stores/${storeId}/catalog`);
+    });
 
-  return (
+    return (
         <div className="store-map-shell" style={{ height }}>
             {loading ? <div className="store-map-overlay">Loading stores...</div> : null}
             {error ? <div className="store-map-overlay store-map-status-error">{error}</div> : null}
