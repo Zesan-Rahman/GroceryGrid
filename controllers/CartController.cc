@@ -36,10 +36,10 @@ std::optional<int> getAccountId(const HttpRequestPtr &req) {
 
 namespace api {
 
-void CartController::createCart(const HttpRequestPtr &req, Callback &&callback) const {
+void CartController::getCart(const HttpRequestPtr &req, Callback &&callback) const {
     auto callbackPtr = std::make_shared<Callback>(std::move(callback));
     auto accountIdOpt = getAccountId(req);
-    
+
     if (!accountIdOpt) {
         Json::Value body;
         body["message"] = "Not authenticated";
@@ -47,111 +47,35 @@ void CartController::createCart(const HttpRequestPtr &req, Callback &&callback) 
         return;
     }
 
-    auto onResult = [callbackPtr](const drogon::orm::Result &result) {
-        if (result.empty()) {
-            Json::Value body;
-            body["message"] = "Failed to create cart";
-            sendJson(callbackPtr, drogon::k500InternalServerError, std::move(body));
-            return;
-        }
-        Json::Value body;
-        body["cart_id"] = result[0]["cart_id"].as<int>();
-        sendJson(callbackPtr, drogon::k201Created, std::move(body));
-    };
+    int accountId = accountIdOpt.value();
 
-    auto onError = [callbackPtr](const drogon::orm::DrogonDbException &e) {
-        LOG_ERROR << "Failed to create cart: " << e.base().what();
-        Json::Value body;
-        body["message"] = "Failed to create cart";
-        sendJson(callbackPtr, drogon::k500InternalServerError, std::move(body));
-    };
-
-    dbClient()->execSqlAsync(
-        "INSERT INTO carts (account_id) VALUES ($1) RETURNING cart_id",
-        onResult, onError, accountIdOpt.value());
-}
-
-void CartController::listCarts(const HttpRequestPtr &req, Callback &&callback) const {
-    auto callbackPtr = std::make_shared<Callback>(std::move(callback));
-    auto accountIdOpt = getAccountId(req);
-    
-    if (!accountIdOpt) {
-        Json::Value body;
-        body["message"] = "Not authenticated";
-        sendJson(callbackPtr, drogon::k401Unauthorized, std::move(body));
-        return;
-    }
-
-    auto onResult = [callbackPtr](const drogon::orm::Result &result) {
-        Json::Value carts(Json::arrayValue);
+    auto onResult = [callbackPtr, accountId](const drogon::orm::Result &result) {
+        Json::Value cart(Json::objectValue);
+        cart["account_id"] = accountId;
+        Json::Value items(Json::arrayValue);
         for (const auto &row : result) {
-            Json::Value cart;
-            cart["cart_id"] = row["cart_id"].as<int>();
-            carts.append(cart);
-        }
-        sendJson(callbackPtr, drogon::k200OK, std::move(carts));
-    };
-
-    auto onError = [callbackPtr](const drogon::orm::DrogonDbException &e) {
-        LOG_ERROR << "Failed to list carts: " << e.base().what();
-        Json::Value body;
-        body["message"] = "Failed to load carts";
-        sendJson(callbackPtr, drogon::k500InternalServerError, std::move(body));
-    };
-
-    dbClient()->execSqlAsync(
-        "SELECT cart_id FROM carts WHERE account_id = $1 ORDER BY cart_id ASC",
-        onResult, onError, accountIdOpt.value());
-}
-
-void CartController::getCart(const HttpRequestPtr &req, Callback &&callback, int cartId) const {
-    auto callbackPtr = std::make_shared<Callback>(std::move(callback));
-    auto accountIdOpt = getAccountId(req);
-    
-    if (!accountIdOpt) {
-        Json::Value body;
-        body["message"] = "Not authenticated";
-        sendJson(callbackPtr, drogon::k401Unauthorized, std::move(body));
-        return;
-    }
-
-    auto onResult = [callbackPtr, cartId, accountId = accountIdOpt.value()](const drogon::orm::Result &result) {
-        if (result.empty() || result[0]["account_id"].as<int>() != accountId) {
-            Json::Value body;
-            body["message"] = "Cart not found or unauthorized";
-            sendJson(callbackPtr, drogon::k404NotFound, std::move(body));
-            return;
-        }
-
-        auto onItemsResult = [callbackPtr, cartId](const drogon::orm::Result &itemsResult) {
-            Json::Value cart(Json::objectValue);
-            cart["cart_id"] = cartId;
-            Json::Value items(Json::arrayValue);
-            for (const auto &row : itemsResult) {
-                Json::Value item;
-                item["internal_id"] = row["item_id"].as<int>();
-                item["item_name"] = row["item_name"].as<std::string>();
-                item["category"] = row["category"].isNull() ? "" : row["category"].as<std::string>();
-                item["image_url"] = row["image_path"].isNull() ? "" : row["image_path"].as<std::string>();
-                items.append(item);
+            Json::Value item;
+            item["internal_id"]    = row["item_id"].as<int>();
+            item["item_name"]      = row["item_name"].as<std::string>();
+            item["category"]       = row["category"].isNull()   ? "" : row["category"].as<std::string>();
+            item["image_url"]      = row["image_path"].isNull() ? "" : row["image_path"].as<std::string>();
+            item["quantity"]       = row["quantity"].as<int>();
+            if (row["logged_price"].isNull()) {
+                item["price"]      = Json::Value(Json::nullValue);
+            } else {
+                item["price"]      = row["logged_price"].as<double>();
             }
-            cart["items"] = items;
-            sendJson(callbackPtr, drogon::k200OK, std::move(cart));
-        };
-
-        auto onItemsError = [callbackPtr](const drogon::orm::DrogonDbException &e) {
-            LOG_ERROR << "Failed to load cart items: " << e.base().what();
-            Json::Value body;
-            body["message"] = "Failed to load cart items";
-            sendJson(callbackPtr, drogon::k500InternalServerError, std::move(body));
-        };
-
-        dbClient()->execSqlAsync(
-            "SELECT i.item_id, i.item_name, i.category, i.image_path "
-            "FROM cart_items ci "
-            "JOIN items i ON ci.item_id = i.item_id "
-            "WHERE ci.cart_id = $1",
-            onItemsResult, onItemsError, cartId);
+            if (row["store_name"].isNull()) {
+                item["store_id"]   = Json::Value(Json::nullValue);
+                item["store_name"] = Json::Value(Json::nullValue);
+            } else {
+                item["store_id"]   = row["store_id"].as<int>();
+                item["store_name"] = row["store_name"].as<std::string>();
+            }
+            items.append(item);
+        }
+        cart["items"] = items;
+        sendJson(callbackPtr, drogon::k200OK, std::move(cart));
     };
 
     auto onError = [callbackPtr](const drogon::orm::DrogonDbException &e) {
@@ -162,14 +86,20 @@ void CartController::getCart(const HttpRequestPtr &req, Callback &&callback, int
     };
 
     dbClient()->execSqlAsync(
-        "SELECT account_id FROM carts WHERE cart_id = $1",
-        onResult, onError, cartId);
+        "SELECT i.item_id, i.item_name, i.category, i.image_path, "
+        "ci.quantity, pe.logged_price, s.store_id, s.name AS store_name "
+        "FROM cart_items ci "
+        "JOIN items i ON ci.item_id = i.item_id "
+        "LEFT JOIN price_entries pe ON ci.price_entry_id = pe.entry_id "
+        "LEFT JOIN stores s ON pe.store_id = s.store_id "
+        "WHERE ci.account_id = $1",
+        onResult, onError, accountId);
 }
 
-void CartController::addItem(const HttpRequestPtr &req, Callback &&callback, int cartId) const {
+void CartController::addItem(const HttpRequestPtr &req, Callback &&callback) const {
     auto callbackPtr = std::make_shared<Callback>(std::move(callback));
     auto accountIdOpt = getAccountId(req);
-    
+
     if (!accountIdOpt) {
         Json::Value body;
         body["message"] = "Not authenticated";
@@ -184,8 +114,13 @@ void CartController::addItem(const HttpRequestPtr &req, Callback &&callback, int
         sendJson(callbackPtr, drogon::k400BadRequest, std::move(body));
         return;
     }
-    
-    int itemId = (*json)["item_id"].asInt();
+
+    int itemId   = (*json)["item_id"].asInt();
+    int quantity = json->isMember("quantity") ? (*json)["quantity"].asInt() : 1;
+
+    // price_entry_id is optional — use NULL if not provided
+    bool hasPriceEntry = json->isMember("price_entry_id") && !(*json)["price_entry_id"].isNull();
+    int  priceEntryId  = hasPriceEntry ? (*json)["price_entry_id"].asInt() : 0;
 
     auto onResult = [callbackPtr](const drogon::orm::Result &result) {
         Json::Value body;
@@ -200,18 +135,27 @@ void CartController::addItem(const HttpRequestPtr &req, Callback &&callback, int
         sendJson(callbackPtr, drogon::k500InternalServerError, std::move(body));
     };
 
-    dbClient()->execSqlAsync(
-        "INSERT INTO cart_items (cart_id, item_id) "
-        "SELECT $1, $2 "
-        "WHERE EXISTS (SELECT 1 FROM carts WHERE cart_id = $1 AND account_id = $3) "
-        "ON CONFLICT DO NOTHING",
-        onResult, onError, cartId, itemId, accountIdOpt.value());
+    if (hasPriceEntry) {
+        dbClient()->execSqlAsync(
+            "INSERT INTO cart_items (account_id, item_id, quantity, price_entry_id) "
+            "VALUES ($1, $2, $3, $4) "
+            "ON CONFLICT (account_id, item_id) DO UPDATE "
+            "SET quantity = EXCLUDED.quantity, price_entry_id = EXCLUDED.price_entry_id",
+            onResult, onError, accountIdOpt.value(), itemId, quantity, priceEntryId);
+    } else {
+        dbClient()->execSqlAsync(
+            "INSERT INTO cart_items (account_id, item_id, quantity) "
+            "VALUES ($1, $2, $3) "
+            "ON CONFLICT (account_id, item_id) DO UPDATE "
+            "SET quantity = EXCLUDED.quantity, price_entry_id = NULL",
+            onResult, onError, accountIdOpt.value(), itemId, quantity);
+    }
 }
 
-void CartController::removeItem(const HttpRequestPtr &req, Callback &&callback, int cartId, int itemId) const {
+void CartController::removeItem(const HttpRequestPtr &req, Callback &&callback, int itemId) const {
     auto callbackPtr = std::make_shared<Callback>(std::move(callback));
     auto accountIdOpt = getAccountId(req);
-    
+
     if (!accountIdOpt) {
         Json::Value body;
         body["message"] = "Not authenticated";
@@ -233,10 +177,8 @@ void CartController::removeItem(const HttpRequestPtr &req, Callback &&callback, 
     };
 
     dbClient()->execSqlAsync(
-        "DELETE FROM cart_items "
-        "WHERE cart_id = $1 AND item_id = $2 "
-        "AND EXISTS (SELECT 1 FROM carts WHERE cart_id = $1 AND account_id = $3)",
-        onResult, onError, cartId, itemId, accountIdOpt.value());
+        "DELETE FROM cart_items WHERE account_id = $1 AND item_id = $2",
+        onResult, onError, accountIdOpt.value(), itemId);
 }
 
 } // namespace api
