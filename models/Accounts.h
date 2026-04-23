@@ -39,6 +39,8 @@ namespace drogon_model
 namespace main
 {
 class Admins;
+class CartItems;
+class Items;
 
 class Accounts
 {
@@ -168,6 +170,10 @@ class Accounts
     void getAccount(const drogon::orm::DbClientPtr &clientPtr,
                     const std::function<void(Admins)> &rcb,
                     const drogon::orm::ExceptionCallback &ecb) const;
+    std::vector<std::pair<Items,CartItems>> getItems(const drogon::orm::DbClientPtr &clientPtr) const;
+    void getItems(const drogon::orm::DbClientPtr &clientPtr,
+                  const std::function<void(std::vector<std::pair<Items,CartItems>>)> &rcb,
+                  const drogon::orm::ExceptionCallback &ecb) const;
   private:
     friend drogon::orm::Mapper<Accounts>;
     friend drogon::orm::BaseBuilder<Accounts, true, true>;

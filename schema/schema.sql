@@ -59,15 +59,12 @@ CREATE TABLE price_entries (
     price_date   DATE
 );
 
-CREATE TABLE carts (
-    cart_id     SERIAL PRIMARY KEY,
-    account_id  INT REFERENCES accounts(account_id)
-);
-
 CREATE TABLE cart_items (
-    cart_id  INT REFERENCES carts(cart_id),
-    item_id  INT REFERENCES items(item_id),
-    PRIMARY KEY (cart_id, item_id)
+    account_id     INT REFERENCES accounts(account_id),
+    item_id        INT REFERENCES items(item_id),
+    quantity       INT NOT NULL DEFAULT 1,
+    price_entry_id INT REFERENCES price_entries(entry_id),
+    PRIMARY KEY (account_id, item_id)
 );
 
 CREATE TABLE reports (

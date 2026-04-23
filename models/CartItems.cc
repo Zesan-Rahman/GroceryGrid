@@ -13,15 +13,19 @@ using namespace drogon;
 using namespace drogon::orm;
 using namespace drogon_model::main;
 
-const std::string CartItems::Cols::_cart_id = "\"cart_id\"";
+const std::string CartItems::Cols::_account_id = "\"account_id\"";
 const std::string CartItems::Cols::_item_id = "\"item_id\"";
-const std::vector<std::string> CartItems::primaryKeyName = {"cart_id","item_id"};
+const std::string CartItems::Cols::_quantity = "\"quantity\"";
+const std::string CartItems::Cols::_price_entry_id = "\"price_entry_id\"";
+const std::vector<std::string> CartItems::primaryKeyName = {"account_id","item_id"};
 const bool CartItems::hasPrimaryKey = true;
 const std::string CartItems::tableName = "\"cart_items\"";
 
 const std::vector<typename CartItems::MetaData> CartItems::metaData_={
-{"cart_id","int32_t","integer",4,0,1,1},
-{"item_id","int32_t","integer",4,0,1,1}
+{"account_id","int32_t","integer",4,0,1,1},
+{"item_id","int32_t","integer",4,0,1,1},
+{"quantity","int32_t","integer",4,0,0,1},
+{"price_entry_id","int32_t","integer",4,0,0,0}
 };
 const std::string &CartItems::getColumnName(size_t index) noexcept(false)
 {
@@ -32,19 +36,27 @@ CartItems::CartItems(const Row &r, const ssize_t indexOffset) noexcept
 {
     if(indexOffset < 0)
     {
-        if(!r["cart_id"].isNull())
+        if(!r["account_id"].isNull())
         {
-            cartId_=std::make_shared<int32_t>(r["cart_id"].as<int32_t>());
+            accountId_=std::make_shared<int32_t>(r["account_id"].as<int32_t>());
         }
         if(!r["item_id"].isNull())
         {
             itemId_=std::make_shared<int32_t>(r["item_id"].as<int32_t>());
         }
+        if(!r["quantity"].isNull())
+        {
+            quantity_=std::make_shared<int32_t>(r["quantity"].as<int32_t>());
+        }
+        if(!r["price_entry_id"].isNull())
+        {
+            priceEntryId_=std::make_shared<int32_t>(r["price_entry_id"].as<int32_t>());
+        }
     }
     else
     {
         size_t offset = (size_t)indexOffset;
-        if(offset + 2 > r.size())
+        if(offset + 4 > r.size())
         {
             LOG_FATAL << "Invalid SQL result for this model";
             return;
@@ -53,12 +65,22 @@ CartItems::CartItems(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 0;
         if(!r[index].isNull())
         {
-            cartId_=std::make_shared<int32_t>(r[index].as<int32_t>());
+            accountId_=std::make_shared<int32_t>(r[index].as<int32_t>());
         }
         index = offset + 1;
         if(!r[index].isNull())
         {
             itemId_=std::make_shared<int32_t>(r[index].as<int32_t>());
+        }
+        index = offset + 2;
+        if(!r[index].isNull())
+        {
+            quantity_=std::make_shared<int32_t>(r[index].as<int32_t>());
+        }
+        index = offset + 3;
+        if(!r[index].isNull())
+        {
+            priceEntryId_=std::make_shared<int32_t>(r[index].as<int32_t>());
         }
     }
 
@@ -66,7 +88,7 @@ CartItems::CartItems(const Row &r, const ssize_t indexOffset) noexcept
 
 CartItems::CartItems(const Json::Value &pJson, const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 2)
+    if(pMasqueradingVector.size() != 4)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -76,7 +98,7 @@ CartItems::CartItems(const Json::Value &pJson, const std::vector<std::string> &p
         dirtyFlag_[0] = true;
         if(!pJson[pMasqueradingVector[0]].isNull())
         {
-            cartId_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[0]].asInt64());
+            accountId_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[0]].asInt64());
         }
     }
     if(!pMasqueradingVector[1].empty() && pJson.isMember(pMasqueradingVector[1]))
@@ -87,16 +109,32 @@ CartItems::CartItems(const Json::Value &pJson, const std::vector<std::string> &p
             itemId_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[1]].asInt64());
         }
     }
+    if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
+    {
+        dirtyFlag_[2] = true;
+        if(!pJson[pMasqueradingVector[2]].isNull())
+        {
+            quantity_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[2]].asInt64());
+        }
+    }
+    if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
+    {
+        dirtyFlag_[3] = true;
+        if(!pJson[pMasqueradingVector[3]].isNull())
+        {
+            priceEntryId_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[3]].asInt64());
+        }
+    }
 }
 
 CartItems::CartItems(const Json::Value &pJson) noexcept(false)
 {
-    if(pJson.isMember("cart_id"))
+    if(pJson.isMember("account_id"))
     {
         dirtyFlag_[0]=true;
-        if(!pJson["cart_id"].isNull())
+        if(!pJson["account_id"].isNull())
         {
-            cartId_=std::make_shared<int32_t>((int32_t)pJson["cart_id"].asInt64());
+            accountId_=std::make_shared<int32_t>((int32_t)pJson["account_id"].asInt64());
         }
     }
     if(pJson.isMember("item_id"))
@@ -107,12 +145,28 @@ CartItems::CartItems(const Json::Value &pJson) noexcept(false)
             itemId_=std::make_shared<int32_t>((int32_t)pJson["item_id"].asInt64());
         }
     }
+    if(pJson.isMember("quantity"))
+    {
+        dirtyFlag_[2]=true;
+        if(!pJson["quantity"].isNull())
+        {
+            quantity_=std::make_shared<int32_t>((int32_t)pJson["quantity"].asInt64());
+        }
+    }
+    if(pJson.isMember("price_entry_id"))
+    {
+        dirtyFlag_[3]=true;
+        if(!pJson["price_entry_id"].isNull())
+        {
+            priceEntryId_=std::make_shared<int32_t>((int32_t)pJson["price_entry_id"].asInt64());
+        }
+    }
 }
 
 void CartItems::updateByMasqueradedJson(const Json::Value &pJson,
                                             const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 2)
+    if(pMasqueradingVector.size() != 4)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -121,7 +175,7 @@ void CartItems::updateByMasqueradedJson(const Json::Value &pJson,
     {
         if(!pJson[pMasqueradingVector[0]].isNull())
         {
-            cartId_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[0]].asInt64());
+            accountId_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[0]].asInt64());
         }
     }
     if(!pMasqueradingVector[1].empty() && pJson.isMember(pMasqueradingVector[1]))
@@ -131,15 +185,31 @@ void CartItems::updateByMasqueradedJson(const Json::Value &pJson,
             itemId_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[1]].asInt64());
         }
     }
+    if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
+    {
+        dirtyFlag_[2] = true;
+        if(!pJson[pMasqueradingVector[2]].isNull())
+        {
+            quantity_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[2]].asInt64());
+        }
+    }
+    if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
+    {
+        dirtyFlag_[3] = true;
+        if(!pJson[pMasqueradingVector[3]].isNull())
+        {
+            priceEntryId_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[3]].asInt64());
+        }
+    }
 }
 
 void CartItems::updateByJson(const Json::Value &pJson) noexcept(false)
 {
-    if(pJson.isMember("cart_id"))
+    if(pJson.isMember("account_id"))
     {
-        if(!pJson["cart_id"].isNull())
+        if(!pJson["account_id"].isNull())
         {
-            cartId_=std::make_shared<int32_t>((int32_t)pJson["cart_id"].asInt64());
+            accountId_=std::make_shared<int32_t>((int32_t)pJson["account_id"].asInt64());
         }
     }
     if(pJson.isMember("item_id"))
@@ -149,22 +219,38 @@ void CartItems::updateByJson(const Json::Value &pJson) noexcept(false)
             itemId_=std::make_shared<int32_t>((int32_t)pJson["item_id"].asInt64());
         }
     }
+    if(pJson.isMember("quantity"))
+    {
+        dirtyFlag_[2] = true;
+        if(!pJson["quantity"].isNull())
+        {
+            quantity_=std::make_shared<int32_t>((int32_t)pJson["quantity"].asInt64());
+        }
+    }
+    if(pJson.isMember("price_entry_id"))
+    {
+        dirtyFlag_[3] = true;
+        if(!pJson["price_entry_id"].isNull())
+        {
+            priceEntryId_=std::make_shared<int32_t>((int32_t)pJson["price_entry_id"].asInt64());
+        }
+    }
 }
 
-const int32_t &CartItems::getValueOfCartId() const noexcept
+const int32_t &CartItems::getValueOfAccountId() const noexcept
 {
     static const int32_t defaultValue = int32_t();
-    if(cartId_)
-        return *cartId_;
+    if(accountId_)
+        return *accountId_;
     return defaultValue;
 }
-const std::shared_ptr<int32_t> &CartItems::getCartId() const noexcept
+const std::shared_ptr<int32_t> &CartItems::getAccountId() const noexcept
 {
-    return cartId_;
+    return accountId_;
 }
-void CartItems::setCartId(const int32_t &pCartId) noexcept
+void CartItems::setAccountId(const int32_t &pAccountId) noexcept
 {
-    cartId_ = std::make_shared<int32_t>(pCartId);
+    accountId_ = std::make_shared<int32_t>(pAccountId);
     dirtyFlag_[0] = true;
 }
 
@@ -185,19 +271,60 @@ void CartItems::setItemId(const int32_t &pItemId) noexcept
     dirtyFlag_[1] = true;
 }
 
+const int32_t &CartItems::getValueOfQuantity() const noexcept
+{
+    static const int32_t defaultValue = int32_t();
+    if(quantity_)
+        return *quantity_;
+    return defaultValue;
+}
+const std::shared_ptr<int32_t> &CartItems::getQuantity() const noexcept
+{
+    return quantity_;
+}
+void CartItems::setQuantity(const int32_t &pQuantity) noexcept
+{
+    quantity_ = std::make_shared<int32_t>(pQuantity);
+    dirtyFlag_[2] = true;
+}
+
+const int32_t &CartItems::getValueOfPriceEntryId() const noexcept
+{
+    static const int32_t defaultValue = int32_t();
+    if(priceEntryId_)
+        return *priceEntryId_;
+    return defaultValue;
+}
+const std::shared_ptr<int32_t> &CartItems::getPriceEntryId() const noexcept
+{
+    return priceEntryId_;
+}
+void CartItems::setPriceEntryId(const int32_t &pPriceEntryId) noexcept
+{
+    priceEntryId_ = std::make_shared<int32_t>(pPriceEntryId);
+    dirtyFlag_[3] = true;
+}
+void CartItems::setPriceEntryIdToNull() noexcept
+{
+    priceEntryId_.reset();
+    dirtyFlag_[3] = true;
+}
+
 void CartItems::updateId(const uint64_t id)
 {
 }
 typename CartItems::PrimaryKeyType CartItems::getPrimaryKey() const
 {
-    return std::make_tuple(*cartId_,*itemId_);
+    return std::make_tuple(*accountId_,*itemId_);
 }
 
 const std::vector<std::string> &CartItems::insertColumns() noexcept
 {
     static const std::vector<std::string> inCols={
-        "cart_id",
-        "item_id"
+        "account_id",
+        "item_id",
+        "quantity",
+        "price_entry_id"
     };
     return inCols;
 }
@@ -206,9 +333,9 @@ void CartItems::outputArgs(drogon::orm::internal::SqlBinder &binder) const
 {
     if(dirtyFlag_[0])
     {
-        if(getCartId())
+        if(getAccountId())
         {
-            binder << getValueOfCartId();
+            binder << getValueOfAccountId();
         }
         else
         {
@@ -220,6 +347,28 @@ void CartItems::outputArgs(drogon::orm::internal::SqlBinder &binder) const
         if(getItemId())
         {
             binder << getValueOfItemId();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[2])
+    {
+        if(getQuantity())
+        {
+            binder << getValueOfQuantity();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[3])
+    {
+        if(getPriceEntryId())
+        {
+            binder << getValueOfPriceEntryId();
         }
         else
         {
@@ -239,6 +388,14 @@ const std::vector<std::string> CartItems::updateColumns() const
     {
         ret.push_back(getColumnName(1));
     }
+    if(dirtyFlag_[2])
+    {
+        ret.push_back(getColumnName(2));
+    }
+    if(dirtyFlag_[3])
+    {
+        ret.push_back(getColumnName(3));
+    }
     return ret;
 }
 
@@ -246,9 +403,9 @@ void CartItems::updateArgs(drogon::orm::internal::SqlBinder &binder) const
 {
     if(dirtyFlag_[0])
     {
-        if(getCartId())
+        if(getAccountId())
         {
-            binder << getValueOfCartId();
+            binder << getValueOfAccountId();
         }
         else
         {
@@ -266,17 +423,39 @@ void CartItems::updateArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
+    if(dirtyFlag_[2])
+    {
+        if(getQuantity())
+        {
+            binder << getValueOfQuantity();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[3])
+    {
+        if(getPriceEntryId())
+        {
+            binder << getValueOfPriceEntryId();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
 }
 Json::Value CartItems::toJson() const
 {
     Json::Value ret;
-    if(getCartId())
+    if(getAccountId())
     {
-        ret["cart_id"]=getValueOfCartId();
+        ret["account_id"]=getValueOfAccountId();
     }
     else
     {
-        ret["cart_id"]=Json::Value();
+        ret["account_id"]=Json::Value();
     }
     if(getItemId())
     {
@@ -285,6 +464,22 @@ Json::Value CartItems::toJson() const
     else
     {
         ret["item_id"]=Json::Value();
+    }
+    if(getQuantity())
+    {
+        ret["quantity"]=getValueOfQuantity();
+    }
+    else
+    {
+        ret["quantity"]=Json::Value();
+    }
+    if(getPriceEntryId())
+    {
+        ret["price_entry_id"]=getValueOfPriceEntryId();
+    }
+    else
+    {
+        ret["price_entry_id"]=Json::Value();
     }
     return ret;
 }
@@ -298,13 +493,13 @@ Json::Value CartItems::toMasqueradedJson(
     const std::vector<std::string> &pMasqueradingVector) const
 {
     Json::Value ret;
-    if(pMasqueradingVector.size() == 2)
+    if(pMasqueradingVector.size() == 4)
     {
         if(!pMasqueradingVector[0].empty())
         {
-            if(getCartId())
+            if(getAccountId())
             {
-                ret[pMasqueradingVector[0]]=getValueOfCartId();
+                ret[pMasqueradingVector[0]]=getValueOfAccountId();
             }
             else
             {
@@ -322,16 +517,38 @@ Json::Value CartItems::toMasqueradedJson(
                 ret[pMasqueradingVector[1]]=Json::Value();
             }
         }
+        if(!pMasqueradingVector[2].empty())
+        {
+            if(getQuantity())
+            {
+                ret[pMasqueradingVector[2]]=getValueOfQuantity();
+            }
+            else
+            {
+                ret[pMasqueradingVector[2]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[3].empty())
+        {
+            if(getPriceEntryId())
+            {
+                ret[pMasqueradingVector[3]]=getValueOfPriceEntryId();
+            }
+            else
+            {
+                ret[pMasqueradingVector[3]]=Json::Value();
+            }
+        }
         return ret;
     }
     LOG_ERROR << "Masquerade failed";
-    if(getCartId())
+    if(getAccountId())
     {
-        ret["cart_id"]=getValueOfCartId();
+        ret["account_id"]=getValueOfAccountId();
     }
     else
     {
-        ret["cart_id"]=Json::Value();
+        ret["account_id"]=Json::Value();
     }
     if(getItemId())
     {
@@ -341,19 +558,35 @@ Json::Value CartItems::toMasqueradedJson(
     {
         ret["item_id"]=Json::Value();
     }
+    if(getQuantity())
+    {
+        ret["quantity"]=getValueOfQuantity();
+    }
+    else
+    {
+        ret["quantity"]=Json::Value();
+    }
+    if(getPriceEntryId())
+    {
+        ret["price_entry_id"]=getValueOfPriceEntryId();
+    }
+    else
+    {
+        ret["price_entry_id"]=Json::Value();
+    }
     return ret;
 }
 
 bool CartItems::validateJsonForCreation(const Json::Value &pJson, std::string &err)
 {
-    if(pJson.isMember("cart_id"))
+    if(pJson.isMember("account_id"))
     {
-        if(!validJsonOfField(0, "cart_id", pJson["cart_id"], err, true))
+        if(!validJsonOfField(0, "account_id", pJson["account_id"], err, true))
             return false;
     }
     else
     {
-        err="The cart_id column cannot be null";
+        err="The account_id column cannot be null";
         return false;
     }
     if(pJson.isMember("item_id"))
@@ -366,13 +599,23 @@ bool CartItems::validateJsonForCreation(const Json::Value &pJson, std::string &e
         err="The item_id column cannot be null";
         return false;
     }
+    if(pJson.isMember("quantity"))
+    {
+        if(!validJsonOfField(2, "quantity", pJson["quantity"], err, true))
+            return false;
+    }
+    if(pJson.isMember("price_entry_id"))
+    {
+        if(!validJsonOfField(3, "price_entry_id", pJson["price_entry_id"], err, true))
+            return false;
+    }
     return true;
 }
 bool CartItems::validateMasqueradedJsonForCreation(const Json::Value &pJson,
                                                    const std::vector<std::string> &pMasqueradingVector,
                                                    std::string &err)
 {
-    if(pMasqueradingVector.size() != 2)
+    if(pMasqueradingVector.size() != 4)
     {
         err = "Bad masquerading vector";
         return false;
@@ -404,6 +647,22 @@ bool CartItems::validateMasqueradedJsonForCreation(const Json::Value &pJson,
             return false;
         }
       }
+      if(!pMasqueradingVector[2].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[2]))
+          {
+              if(!validJsonOfField(2, pMasqueradingVector[2], pJson[pMasqueradingVector[2]], err, true))
+                  return false;
+          }
+      }
+      if(!pMasqueradingVector[3].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[3]))
+          {
+              if(!validJsonOfField(3, pMasqueradingVector[3], pJson[pMasqueradingVector[3]], err, true))
+                  return false;
+          }
+      }
     }
     catch(const Json::LogicError &e)
     {
@@ -414,9 +673,9 @@ bool CartItems::validateMasqueradedJsonForCreation(const Json::Value &pJson,
 }
 bool CartItems::validateJsonForUpdate(const Json::Value &pJson, std::string &err)
 {
-    if(pJson.isMember("cart_id"))
+    if(pJson.isMember("account_id"))
     {
-        if(!validJsonOfField(0, "cart_id", pJson["cart_id"], err, false))
+        if(!validJsonOfField(0, "account_id", pJson["account_id"], err, false))
             return false;
     }
     else
@@ -434,13 +693,23 @@ bool CartItems::validateJsonForUpdate(const Json::Value &pJson, std::string &err
         err = "The value of primary key must be set in the json object for update";
         return false;
     }
+    if(pJson.isMember("quantity"))
+    {
+        if(!validJsonOfField(2, "quantity", pJson["quantity"], err, false))
+            return false;
+    }
+    if(pJson.isMember("price_entry_id"))
+    {
+        if(!validJsonOfField(3, "price_entry_id", pJson["price_entry_id"], err, false))
+            return false;
+    }
     return true;
 }
 bool CartItems::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
                                                  const std::vector<std::string> &pMasqueradingVector,
                                                  std::string &err)
 {
-    if(pMasqueradingVector.size() != 2)
+    if(pMasqueradingVector.size() != 4)
     {
         err = "Bad masquerading vector";
         return false;
@@ -466,6 +735,16 @@ bool CartItems::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
         err = "The value of primary key must be set in the json object for update";
         return false;
     }
+      if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
+      {
+          if(!validJsonOfField(2, pMasqueradingVector[2], pJson[pMasqueradingVector[2]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
+      {
+          if(!validJsonOfField(3, pMasqueradingVector[3], pJson[pMasqueradingVector[3]], err, false))
+              return false;
+      }
     }
     catch(const Json::LogicError &e)
     {
@@ -499,6 +778,29 @@ bool CartItems::validJsonOfField(size_t index,
             {
                 err="The " + fieldName + " column cannot be null";
                 return false;
+            }
+            if(!pJson.isInt())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            break;
+        case 2:
+            if(pJson.isNull())
+            {
+                err="The " + fieldName + " column cannot be null";
+                return false;
+            }
+            if(!pJson.isInt())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            break;
+        case 3:
+            if(pJson.isNull())
+            {
+                return true;
             }
             if(!pJson.isInt())
             {
