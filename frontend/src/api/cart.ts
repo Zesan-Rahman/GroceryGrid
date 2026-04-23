@@ -5,6 +5,7 @@ export interface CartItem {
   image_url: string;
   quantity: number;
   price: number | null;
+  price_entry_id: number | null;
   store_id: number | null;
   store_name: string | null;
 }
@@ -53,4 +54,15 @@ export async function addToCart(
 
 export async function removeFromCart(item_id: number): Promise<void> {
   await request(`/api/cart/items/${item_id}`, { method: "DELETE" });
+}
+
+export async function getOptimizedCart(miles: number, lat: number, lng: number): Promise<Cart> {
+  return request<Cart>(`/api/cart/optimized?miles=${miles}&origin_latitude=${lat}&origin_longitude=${lng}`);
+}
+
+export async function replaceCart(items: { item_id: number, quantity: number, price_entry_id: number | null }[]): Promise<void> {
+  await request("/api/cart", {
+    method: "PUT",
+    body: JSON.stringify({ items })
+  });
 }
