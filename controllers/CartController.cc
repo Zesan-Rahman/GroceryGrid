@@ -1,5 +1,6 @@
 #include "CartController.h"
 
+#include <cmath>
 #include <memory>
 #include <string>
 
@@ -179,6 +180,171 @@ void CartController::removeItem(const HttpRequestPtr &req, Callback &&callback, 
     dbClient()->execSqlAsync(
         "DELETE FROM cart_items WHERE account_id = $1 AND item_id = $2",
         onResult, onError, accountIdOpt.value(), itemId);
+}
+
+void CartController::optimizeCart(const HttpRequestPtr &req, Callback &&callback) const {
+    auto callbackPtr = std::make_shared<Callback>(std::move(callback));
+    auto accountIdOpt = getAccountId(req);
+
+    if (!accountIdOpt) {
+        Json::Value body;
+        body["message"] = "Not authenticated";
+        sendJson(callbackPtr, drogon::k401Unauthorized, std::move(body));
+        return;
+    }
+
+    // --- Parse query parameters ---
+    auto milesStr     = req->getParameter("miles");
+    auto originLonStr = req->getParameter("origin_longitude");
+    auto originLatStr = req->getParameter("origin_latitude");
+
+    if (milesStr.empty() || originLonStr.empty() || originLatStr.empty()) {
+        Json::Value body;
+        body["message"] = "Missing required query parameters: miles, origin_longitude, origin_latitude";
+        sendJson(callbackPtr, drogon::k400BadRequest, std::move(body));
+        return;
+    }
+
+    double miles, originLon, originLat;
+    try {
+        miles     = std::stod(milesStr);
+        originLon = std::stod(originLonStr);
+        originLat = std::stod(originLatStr);
+    } catch (const std::exception &) {
+        Json::Value body;
+        body["message"] = "Invalid numeric value for miles, origin_longitude, or origin_latitude";
+        sendJson(callbackPtr, drogon::k400BadRequest, std::move(body));
+        return;
+    }
+
+    int accountId = accountIdOpt.value();
+
+    // Fetch every price entry for every item in this account's cart,
+    // together with item metadata and store coordinates.
+    // We'll pick the cheapest in-range entry per item in C++.
+    auto onResult = [callbackPtr, accountId, miles, originLon, originLat](
+                        const drogon::orm::Result &result) {
+        // Earth radius in miles (equirectangular approximation)
+        constexpr double R = 3959.0;
+        constexpr double DEG_TO_RAD = M_PI / 180.0;
+
+        double phi1 = originLat * DEG_TO_RAD;
+        double lam1 = originLon * DEG_TO_RAD;
+
+        // Group rows by item_id; for each item keep the cheapest in-range entry.
+        // We use a map: item_id -> best row index (-1 = none found yet).
+        struct BestEntry {
+            int    rowIdx   = -1;
+            double price    = std::numeric_limits<double>::max();
+        };
+        std::map<int, BestEntry> bestPerItem;
+
+        int idx = 0;
+        for (const auto &row : result) {
+            int itemId = row["item_id"].as<int>();
+
+            // Every row from this query has a price entry and a store.
+            double storeLatDeg = row["store_latitude"].as<double>();
+            double storeLonDeg = row["store_longitude"].as<double>();
+            double price       = row["logged_price"].as<double>();
+
+            // --- Equirectangular distance ---
+            double phi2 = storeLatDeg * DEG_TO_RAD;
+            double lam2 = storeLonDeg * DEG_TO_RAD;
+            double x    = (lam2 - lam1) * std::cos((phi1 + phi2) / 2.0);
+            double y    = phi2 - phi1;
+            double dist = R * std::sqrt(x * x + y * y);
+
+            if (dist <= miles) {
+                auto &best = bestPerItem[itemId];
+                if (price < best.price) {
+                    best.price  = price;
+                    best.rowIdx = idx;
+                }
+            }
+            ++idx;
+        }
+
+        // Build a second pass: collect item metadata from the result set.
+        // We need all distinct items (even those with no in-range price).
+        // Use a separate map for item metadata keyed by item_id.
+        struct ItemMeta {
+            std::string name;
+            std::string category;
+            std::string imagePath;
+            int         quantity = 0;
+        };
+        std::map<int, ItemMeta> itemMeta;
+        for (const auto &row : result) {
+            int itemId = row["item_id"].as<int>();
+            if (itemMeta.find(itemId) == itemMeta.end()) {
+                ItemMeta m;
+                m.name      = row["item_name"].as<std::string>();
+                m.category  = row["category"].isNull()    ? "" : row["category"].as<std::string>();
+                m.imagePath = row["image_path"].isNull()  ? "" : row["image_path"].as<std::string>();
+                m.quantity  = row["quantity"].as<int>();
+                itemMeta[itemId] = std::move(m);
+            }
+        }
+
+        // Assemble the response. Rows are indexed so we can look up winner.
+        std::vector<const drogon::orm::Row*> rowPtrs;
+        rowPtrs.reserve(result.size());
+        for (const auto &row : result) { rowPtrs.push_back(&row); }
+
+        Json::Value cart(Json::objectValue);
+        cart["account_id"] = accountId;
+        Json::Value items(Json::arrayValue);
+
+        for (const auto &[itemId, meta] : itemMeta) {
+            Json::Value item;
+            item["internal_id"] = itemId;
+            item["item_name"]   = meta.name;
+            item["category"]    = meta.category;
+            item["image_url"]   = meta.imagePath;
+            item["quantity"]    = meta.quantity;
+
+            auto it = bestPerItem.find(itemId);
+            if (it != bestPerItem.end() && it->second.rowIdx >= 0) {
+                const auto &best = *rowPtrs[static_cast<size_t>(it->second.rowIdx)];
+                item["price"]      = it->second.price;
+                item["store_id"]   = best["store_id"].as<int>();
+                item["store_name"] = best["store_name"].as<std::string>();
+            } else {
+                item["price"]      = Json::Value(Json::nullValue);
+                item["store_id"]   = Json::Value(Json::nullValue);
+                item["store_name"] = Json::Value(Json::nullValue);
+            }
+            items.append(item);
+        }
+        cart["items"] = items;
+        sendJson(callbackPtr, drogon::k200OK, std::move(cart));
+    };
+
+    auto onError = [callbackPtr](const drogon::orm::DrogonDbException &e) {
+        LOG_ERROR << "Failed to load optimized cart: " << e.base().what();
+        Json::Value body;
+        body["message"] = "Failed to load optimized cart";
+        sendJson(callbackPtr, drogon::k500InternalServerError, std::move(body));
+    };
+
+    // For each cart item, fetch ALL price entries (across all stores) so we
+    // can filter and rank them in C++. Items with no price entries at all
+    // will not appear as rows; we handle that via itemMeta population above.
+    dbClient()->execSqlAsync(
+        "SELECT i.item_id, i.item_name, i.category, i.image_path, "
+        "ci.quantity, "
+        "pe.entry_id AS price_entry_id, pe.logged_price, "
+        "s.store_id, s.name AS store_name, "
+        "CAST(s.latitude  AS double precision) AS store_latitude, "
+        "CAST(s.longitude AS double precision) AS store_longitude "
+        "FROM cart_items ci "
+        "JOIN items i ON ci.item_id = i.item_id "
+        "JOIN price_entries pe ON pe.item_id = i.item_id "
+        "JOIN stores s ON pe.store_id = s.store_id "
+        "WHERE ci.account_id = $1 "
+        "ORDER BY i.item_id, pe.logged_price",
+        onResult, onError, accountId);
 }
 
 } // namespace api
