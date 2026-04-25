@@ -57,10 +57,12 @@ const UploadReceipts: React.FC = () => {
 
     //Add and Edit prices
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
-    const [editValue, setEditValue] = useState<string>("");
+    const [editTotalPrice, setEditTotalPrice] = useState<string>("");
+    const [editQty, setEditQty] = useState<string>("");
     const [newItemDesc, setNewItemDesc] = useState<string>("");
     const [newItemPrice, setNewItemPrice] = useState<string>("");
     const [items, setItems] = useState<LineItem[]>([]);
+    const [newItemQty, setNewItemQty] = useState<string>("1");
 
     //Store searching
     const [storeQuery, setStoreQuery] = useState<string>("");
@@ -88,7 +90,7 @@ const UploadReceipts: React.FC = () => {
                 : scanResult.summaryItems ?? [];
             setItems(source.map((item) => ({
                 ...item,
-                price: item.qty > 0 ? item.price / item.qty : item.price,
+                price: item.qty > 0 ? item.lineTotal / item.qty : item.price,
             })));
         }
     }, [scanResult]);
@@ -157,15 +159,17 @@ const UploadReceipts: React.FC = () => {
     const handleEditClick = (index: number) => {
         setEditingIndex(index);
         const item = items[index];
-        const unitPrice = item.qty > 0 ? item.price / item.qty : item.price;
-        setEditValue(unitPrice.toFixed(2));
+        const editedTotal = item.editedPrice !== undefined ? item.editedPrice * item.qty : item.lineTotal;
+        setEditTotalPrice(editedTotal.toFixed(2));
+        setEditQty(String(item.qty || 1));
     };
 
     const handleEditSave = (index: number) => {
-        const newPrice = parseFloat(editValue);
-        if (!isNaN(newPrice) && newPrice > 0) {
+        const newTotal = parseFloat(editTotalPrice);
+        const newQty = parseInt(editQty);
+        if (!isNaN(newTotal) && newTotal > 0 && !isNaN(newQty) && newQty > 0) {
             setItems((prev) => prev.map((item, i) =>
-                i === index ? { ...item, editedPrice: newPrice } : item
+                i === index ? { ...item, editedPrice: newTotal / newQty, qty: newQty } : item
             ));
         }
         setEditingIndex(null);
@@ -175,16 +179,18 @@ const UploadReceipts: React.FC = () => {
     const handleAddItem = () => {
         if (!newItemDesc.trim() || !newItemPrice.trim()) return;
         const price = parseFloat(newItemPrice);
-        if (isNaN(price) || price < 0) return;
+        const qty = parseInt(newItemQty);
+        if (isNaN(price) || price < 0 || isNaN(qty) || qty <= 0) return;
         const newItem: LineItem = {
             descClean: newItemDesc,
-            qty: 1,
-            price: price,
+            qty: qty,
+            price: price / qty,
             lineTotal: price,
         };
         setItems((prev) => [...prev, newItem]);
         setNewItemDesc("");
         setNewItemPrice("");
+        setNewItemQty("1");
     };
     //Search
     const handleStoreSearch = async () => {
@@ -224,14 +230,13 @@ const UploadReceipts: React.FC = () => {
             formData.append("storeAddress", selectedStore.address);
             formData.append("rawImageFile", images[images.length - 1].file.name);
             // send items as a JSON string
-            formData.append("items", JSON.stringify(items.map((item) => ({
+            const itemsPayload = JSON.stringify(items.map((item) => ({
                 descClean: item.descClean,
-                price: item.editedPrice !== undefined
-                    ? item.editedPrice
-                    : item.qty > 0 ? item.price / item.qty : item.price,
+                price: item.editedPrice !== undefined ? item.editedPrice : item.price,
                 date: scanResult?.date ?? null,
-            }))));
-
+            })));
+            console.log("Submitting items:", itemsPayload);
+            formData.append("items", itemsPayload);
             const response = await fetch(`${siteLink}/api/receipts/upload`, {
                 method: "POST",
                 body: formData,
@@ -320,30 +325,43 @@ const UploadReceipts: React.FC = () => {
                                             : item.lineTotal;
                                         const unitPrice = item.editedPrice !== undefined
                                             ? item.editedPrice
-                                            : total / item.qty;
+                                            : item.price;
 
                                         return (
                                             <tr key={index}>
                                                 <td>{item.descClean}</td>
-                                                <td>{item.qty || "-"}</td>
+                                                <td>
+                                                    {editingIndex === index ? (
+                                                        <input
+                                                            type="number"
+                                                            value={editQty}
+                                                            onChange={(e) => setEditQty(e.target.value)}
+                                                            className="editInput"
+                                                            placeholder="Qty"
+                                                        />
+                                                    ) : (
+                                                        item.qty || "-"
+                                                    )}
+                                                </td>
+                                                <td>{`${scanResult?.currency ?? ""}${unitPrice.toFixed(2)}`}</td>
                                                 <td>
                                                     {editingIndex === index ? (
                                                         <span>
                                                             <input
                                                                 type="number"
-                                                                value={editValue}
-                                                                onChange={(e) => setEditValue(e.target.value)}
+                                                                value={editTotalPrice}
+                                                                onChange={(e) => setEditTotalPrice(e.target.value)}
                                                                 className="editInput"
+                                                                placeholder="Total"
                                                             />
                                                             <button onClick={() => handleEditSave(index)} className="saveBtn">
                                                                 Save
                                                             </button>
                                                         </span>
                                                     ) : (
-                                                        `${scanResult?.currency ?? ""}${unitPrice.toFixed(2)}`
+                                                        `${scanResult?.currency ?? ""}${total.toFixed(2)}`
                                                     )}
                                                 </td>
-                                                <td>{`${scanResult?.currency ?? ""}${total.toFixed(2)}`}</td>
                                                 <td>
                                                     {editingIndex !== index && (
                                                         <button onClick={() => handleEditClick(index)} className="editBtn">
@@ -368,7 +386,14 @@ const UploadReceipts: React.FC = () => {
                                 />
                                 <input
                                     type="number"
-                                    placeholder="Price"
+                                    placeholder="Qty"
+                                    value={newItemQty}
+                                    onChange={(e) => setNewItemQty(e.target.value)}
+                                    className="addItemInput"
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Total Price"
                                     value={newItemPrice}
                                     onChange={(e) => setNewItemPrice(e.target.value)}
                                     className="addItemInput"
