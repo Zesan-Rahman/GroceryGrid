@@ -75,11 +75,6 @@ const UploadReceipts: React.FC = () => {
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [submitSuccess, setSubmitSuccess] = useState(false);
 
-    const lineItems = (scanResult?.lineItems && scanResult.lineItems.length > 0)
-        ? scanResult.lineItems
-        : (scanResult?.summaryItems && scanResult.summaryItems.length > 0)
-            ? scanResult.summaryItems
-            : null;
 
     useEffect(() => {
         if (scanResult) {
