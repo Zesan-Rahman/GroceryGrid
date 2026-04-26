@@ -497,4 +497,36 @@ void ReportController::dismissReport(const HttpRequestPtr &req,
         std::string(kOpenStatus),
         adminAccountId);
 }
+
+void ReportController::checkUserReport(const HttpRequestPtr &req,
+                                       Callback &&callback,
+                                       int entryId) const
+{
+    auto callbackPtr = std::make_shared<Callback>(std::move(callback));
+    if (!requireAuthenticated(req, callbackPtr))
+    {
+        return;
+    }
+
+    const int accountId = req->session()->get<int>("account_id");
+
+    dbClient()->execSqlAsync(
+        "select 1 from reports "
+        "where reporter_account_id = $1 and price_entry_id = $2 "
+        "limit 1",
+        [callbackPtr](const drogon::orm::Result &result) {
+            Json::Value body(Json::objectValue);
+            body["success"] = true;
+            body["has_reported"] = !result.empty();
+            sendJson(callbackPtr, drogon::k200OK, std::move(body));
+        },
+        [callbackPtr](const drogon::orm::DrogonDbException &e) {
+            respondDatabaseError(callbackPtr,
+                                 "Check user report query failed",
+                                 "Unable to check report status",
+                                 e);
+        },
+        accountId,
+        entryId);
+}
 }  // namespace api
