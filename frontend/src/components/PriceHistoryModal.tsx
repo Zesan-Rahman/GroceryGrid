@@ -4,6 +4,7 @@ import { getPriceHistory } from "../api/items";
 import type { PriceHistoryEntry } from "../api/items";
 import { addToCart } from "../api/cart";
 import { useCart } from "../context/CartContext";
+import ReportEntryModal from "./ReportEntryModal";
 import "./PriceHistoryModal.css";
 
 interface Props {
@@ -21,6 +22,9 @@ export default function PriceHistoryModal({ itemId, itemName, onClose }: Props) 
   // Maps entry_id -> "idle" | "adding" | "added" | "error"
   const [cartStatus, setCartStatus] = useState<Record<number, string>>({});
   const { cart, refreshCart } = useCart();
+
+  // The entry currently being reported (null = report modal closed)
+  const [reportTarget, setReportTarget] = useState<PriceHistoryEntry | null>(null);
 
   async function handleAddToCart(entryId: number) {
     setCartStatus((prev) => ({ ...prev, [entryId]: "adding" }));
@@ -55,12 +59,14 @@ export default function PriceHistoryModal({ itemId, itemName, onClose }: Props) 
     return () => { cancelled = true; };
   }, [itemId]);
 
-  // Close on Escape
+  // Close on Escape — but only when the report modal is NOT open
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !reportTarget) onClose();
+    };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
+  }, [onClose, reportTarget]);
 
   // Close on backdrop click
   function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
@@ -75,14 +81,15 @@ export default function PriceHistoryModal({ itemId, itemName, onClose }: Props) 
   }, {});
 
   return (
-    <div
-      className="ph-overlay"
-      ref={overlayRef}
-      onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Price history for ${itemName}`}
-    >
+    <>
+      <div
+        className="ph-overlay"
+        ref={overlayRef}
+        onClick={handleOverlayClick}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Price history for ${itemName}`}
+      >
       <div className="ph-modal">
         {/* Header */}
         <div className="ph-header">
@@ -166,9 +173,12 @@ export default function PriceHistoryModal({ itemId, itemName, onClose }: Props) 
                                       ? "Added ✓"
                                       : "Add"}
                                   </button>
-                                  <Link to={`/reports/new?entry_id=${e.entry_id}`} className="ph-report-link">
+                                  <button
+                                    className="ph-report-link"
+                                    onClick={() => setReportTarget(e)}
+                                  >
                                     Report
-                                  </Link>
+                                  </button>
                                 </div>
                               </td>
                             </tr>
@@ -184,5 +194,15 @@ export default function PriceHistoryModal({ itemId, itemName, onClose }: Props) 
         </div>
       </div>
     </div>
-  );
+
+    {/* Report modal layers over the price history modal */}
+    {reportTarget && (
+      <ReportEntryModal
+        itemId={itemId}
+        itemName={itemName}
+        entry={reportTarget}
+        onClose={() => setReportTarget(null)}
+      />
+    )}
+  </>);
 }

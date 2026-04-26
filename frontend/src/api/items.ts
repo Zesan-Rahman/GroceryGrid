@@ -19,3 +19,26 @@ export async function getPriceHistory(
   }
   return res.json() as Promise<PriceHistoryEntry[]>;
 }
+
+export async function submitEntryReport(
+  itemId: number,
+  entry: PriceHistoryEntry,
+  reason: string,
+): Promise<void> {
+  const res = await fetch("/api/reports", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      price_entry_id: entry.entry_id,
+      store_id: entry.store_id,
+      item_details: { item_id: itemId },
+      reason,
+      resolution_status: "open",
+    }),
+  });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(data.message ?? "Failed to submit report");
+  }
+}
