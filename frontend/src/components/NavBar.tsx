@@ -11,29 +11,27 @@ interface NavItem {
 export default function NavBar() {
   const navigate = useNavigate();
   const { role, logout } = useAuth();
-
-  if (!role) {
-    return null;
-  }
-
-  let links: NavItem[] = [{ label: "Home", to: roleHomePath(role) }];
+  let links: NavItem[] = [
+    { label: "About Us", to: "/about" },
+    { label: "Contact Us", to: "/contact" },
+  ];
 
   if (role === "user") {
     links = [
+      { label: "Home", to: roleHomePath(role) },
       ...links,
-      { label: "About Us", to: "/about" },
-      { label: "Contact Us", to: "/contact" },
       { label: "Contribute", to: "/contribute" },
       { label: "Catalog", to: "/items" },
     ];
   } else if (role === "store_owner") {
     links = [
+      { label: "Home", to: roleHomePath(role) },
       ...links,
-      { label: "About Us", to: "/about" },
-      { label: "Contact Us", to: "/contact" },
       { label: "My Store Page", to: "/store/page" },
       { label: "Catalog", to: "/items" },
     ];
+  } else if (role === "admin") {
+    links = [{ label: "Home", to: roleHomePath(role) }, ...links];
   }
 
   async function handleLogout() {
@@ -50,16 +48,21 @@ export default function NavBar() {
           </Link>
         ))}
       </div>
-      <div>
-        {/* TODO: change this class from nav-logout to nav-cart */}
+      <div className="nav-actions">
         {role === "user" && (
           <button type="button" className="nav-logout" onClick={() => navigate("/cart")}>
             My Cart
           </button>
         )}
-        <button type="button" className="nav-logout" onClick={() => void handleLogout()}>
-          Logout
-        </button>
+        {role ? (
+          <button type="button" className="nav-logout" onClick={() => void handleLogout()}>
+            Logout
+          </button>
+        ) : (
+          <button type="button" className="nav-logout" onClick={() => navigate("/login")}>
+            Login
+          </button>
+        )}
       </div>
     </nav>
   );
