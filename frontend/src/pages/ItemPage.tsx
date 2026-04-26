@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { addToCart } from "../api/cart";
+import { useCart } from "../context/CartContext";
 import "./ItemPage.css";
 
 interface PriceEntry {
@@ -29,6 +30,7 @@ export default function ItemPage() {
   const [error, setError] = useState("");
   // Maps entry_id -> "idle" | "adding" | "added" | "error"
   const [cartStatus, setCartStatus] = useState<Record<number, string>>({});
+  const { cart, refreshCart } = useCart();
 
   async function handleAddToCart(entryId: number) {
     if (!item) return;
@@ -48,6 +50,7 @@ export default function ItemPage() {
         next[entryId] = "added";
         return next;
       });
+      void refreshCart();
     } catch {
       setCartStatus((prev) => ({ ...prev, [entryId]: "error" }));
     }
@@ -57,13 +60,9 @@ export default function ItemPage() {
     setLoading(true);
     fetch(`/api/items/${id}`)
       .then((res) => {
-        if (res.status === 404) {
-          throw new Error("Item not found");
-        }
-        if (!res.ok) {
-          throw new Error("Failed to load item");
-        }
-        return res.json();
+        if (res.status === 404) throw new Error("Item not found");
+        if (!res.ok) throw new Error("Failed to load item");
+        return res.json() as Promise<ItemDetails>;
       })
       .then((data) => {
         setItem(data);
@@ -76,6 +75,17 @@ export default function ItemPage() {
         setLoading(false);
       });
   }, [id]);
+
+  useEffect(() => {
+    if (item && cart && cart.items) {
+      const initialStatus: Record<number, string> = {};
+      const cartItem = cart.items.find((i) => i.internal_id === item.internal_id);
+      if (cartItem && cartItem.price_entry_id) {
+        initialStatus[cartItem.price_entry_id] = "added";
+      }
+      setCartStatus(initialStatus);
+    }
+  }, [item, cart]);
 
   return (
     <>
