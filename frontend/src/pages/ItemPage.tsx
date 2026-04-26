@@ -1,9 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useParams, Link } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { addToCart } from "../api/cart";
 import { useCart } from "../context/CartContext";
 import "./ItemPage.css";
+
+const PriceHistoryModal = lazy(
+  () => import("../components/PriceHistoryModal"),
+);
 
 interface PriceEntry {
   entry_id: number;
@@ -31,6 +35,8 @@ export default function ItemPage() {
   // Maps entry_id -> "idle" | "adding" | "added" | "error"
   const [cartStatus, setCartStatus] = useState<Record<number, string>>({});
   const { cart, refreshCart } = useCart();
+  // null = closed; otherwise the item whose history we're showing
+  const [historyTarget, setHistoryTarget] = useState<{ id: number; name: string } | null>(null);
 
   async function handleAddToCart(entryId: number) {
     if (!item) return;
@@ -147,7 +153,17 @@ export default function ItemPage() {
                                   ? "Error — retry"
                                   : "Add to Cart"}
                               </button>
-                              <button className="action-btn history-btn" onClick={() => { }}>View Price History</button>
+                              <button
+                                className="action-btn history-btn"
+                                onClick={() =>
+                                  setHistoryTarget({
+                                    id: item.internal_id,
+                                    name: item.item_name,
+                                  })
+                                }
+                              >
+                                View Price History
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -162,6 +178,17 @@ export default function ItemPage() {
           </div>
         ) : null}
       </main>
+
+      {/* Lazy-loaded price history modal */}
+      {historyTarget && (
+        <Suspense fallback={null}>
+          <PriceHistoryModal
+            itemId={historyTarget.id}
+            itemName={historyTarget.name}
+            onClose={() => setHistoryTarget(null)}
+          />
+        </Suspense>
+      )}
     </>
   );
 }
