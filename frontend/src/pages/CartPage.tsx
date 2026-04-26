@@ -2,13 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import LocationRibbon, { LocationButton } from "../components/LocationRibbon";
-import { getCart, removeFromCart, type Cart } from "../api/cart";
+import { removeFromCart } from "../api/cart";
 import { useLocation } from "../context/LocationContext";
+import { useCart } from "../context/CartContext";
 
 export default function CartPage() {
-  const [cart, setCart] = useState<Cart | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { cart, loading, error, refreshCart } = useCart();
   const [removing, setRemoving] = useState<Record<number, boolean>>({});
   
   const [showOptimizeModal, setShowOptimizeModal] = useState(false);
@@ -16,30 +15,13 @@ export default function CartPage() {
   const { location } = useLocation();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    setLoading(true);
-    getCart()
-      .then((data) => {
-        setCart(data);
-        setError("");
-      })
-      .catch((err: Error) => {
-        setError(err.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+
 
   async function handleRemove(itemId: number) {
     setRemoving((prev) => ({ ...prev, [itemId]: true }));
     try {
       await removeFromCart(itemId);
-      setCart((prev) =>
-        prev
-          ? { ...prev, items: prev.items.filter((i) => i.internal_id !== itemId) }
-          : prev
-      );
+      await refreshCart();
     } catch (err) {
       alert((err as Error).message);
     } finally {

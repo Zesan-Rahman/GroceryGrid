@@ -6,6 +6,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { logout, me, type AuthUser } from "./api/auth";
 import { StoreProvider } from "./context/StoreContext";
 import { LocationProvider } from "./context/LocationContext";
+import { CartProvider } from "./context/CartContext";
 import AdminHome from "./pages/AdminHome";
 import AdminReportEntryPage from "./pages/AdminReportEntryPage";
 import AboutUs from "./pages/AboutUs";
@@ -109,91 +110,93 @@ export default function App() {
     <LocationProvider>
       <AuthProvider user={user} logout={handleLogout}>
         <StoreProvider>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <Navigate
-                  to={user ? roleHomePath(user.role) : "/login"}
-                  replace
-                />
-              }
-            />
-            <Route
-              path="/login"
-              element={
-                user ? (
-                  <Navigate to={roleHomePath(user.role)} replace />
-                ) : (
-                  <Login onLogin={handleLogin} />
-                )
-              }
-            />
-            <Route
-              path="/register"
-              element={user ? <Navigate to={roleHomePath(user.role)} replace /> : <Register />}
-            />
-
-            <Route path="/about" element={<AboutUs />} />
-            <Route path="/contact" element={<ContactUs />} />
-
-            <Route
-              element={
-                <ProtectedRoute
-                  user={user}
-                  allowedRoles={["user", "store_owner", "admin"]}
-                />
-              }
-            >
-              <Route path="/items" element={<ItemCatalogPage />} />
-              <Route path="/items/:id" element={<ItemPage />} />
-            </Route>
-
-            <Route
-              element={<ProtectedRoute user={user} allowedRoles={["user"]} />}
-            >
-              <Route path="/user/home" element={<UserHome user={user} />} />
-              <Route path="/contribute" element={<Contribute />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/cart/optimized" element={<OptimizedCartPage />} />
-            </Route>
-
-            <Route
-              element={<ProtectedRoute user={user} allowedRoles={["store_owner"]} />}
-            >
-              <Route path="/store/home" element={<StoreOwnerHome user={user} />} />
-              <Route path="/store/page" element={<MyStorePage />} />
-            </Route>
-
-            <Route
-              element={
-                <ProtectedRoute
-                  user={user}
-                  allowedRoles={["user", "store_owner"]}
-                />
-              }
-            >
-              <Route path="/stores/:storeId/catalog" element={<StoreCatalogPage />} />
-            </Route>
-
-            <Route element={<ProtectedRoute user={user} allowedRoles={["admin"]} />}>
-              <Route path="/admin/home" element={<AdminHome user={user} />} />
+          <CartProvider>
+            <Routes>
               <Route
-                path="/admin/reports/entries/:entryId"
-                element={<AdminReportEntryPage />}
+                path="/"
+                element={
+                  <Navigate
+                    to={user ? roleHomePath(user.role) : "/login"}
+                    replace
+                  />
+                }
               />
-            </Route>
+              <Route
+                path="/login"
+                element={
+                  user ? (
+                    <Navigate to={roleHomePath(user.role)} replace />
+                  ) : (
+                    <Login onLogin={handleLogin} />
+                  )
+                }
+              />
+              <Route
+                path="/register"
+                element={user ? <Navigate to={roleHomePath(user.role)} replace /> : <Register />}
+              />
 
-            <Route
-              path="*"
-              element={
-                <Navigate
-                  to={user ? roleHomePath(user.role) : "/login"}
-                  replace
+              <Route path="/about" element={<AboutUs />} />
+              <Route path="/contact" element={<ContactUs />} />
+
+              <Route
+                element={
+                  <ProtectedRoute
+                    user={user}
+                    allowedRoles={["user", "store_owner", "admin"]}
+                  />
+                }
+              >
+                <Route path="/items" element={<ItemCatalogPage />} />
+                <Route path="/items/:id" element={<ItemPage />} />
+              </Route>
+
+              <Route
+                element={<ProtectedRoute user={user} allowedRoles={["user"]} />}
+              >
+                <Route path="/user/home" element={<UserHome user={user} />} />
+                <Route path="/contribute" element={<Contribute />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/cart/optimized" element={<OptimizedCartPage />} />
+              </Route>
+
+              <Route
+                element={<ProtectedRoute user={user} allowedRoles={["store_owner"]} />}
+              >
+                <Route path="/store/home" element={<StoreOwnerHome user={user} />} />
+                <Route path="/store/page" element={<MyStorePage />} />
+              </Route>
+
+              <Route
+                element={
+                  <ProtectedRoute
+                    user={user}
+                    allowedRoles={["user", "store_owner"]}
+                  />
+                }
+              >
+                <Route path="/stores/:storeId/catalog" element={<StoreCatalogPage />} />
+              </Route>
+
+              <Route element={<ProtectedRoute user={user} allowedRoles={["admin"]} />}>
+                <Route path="/admin/home" element={<AdminHome user={user} />} />
+                <Route
+                  path="/admin/reports/entries/:entryId"
+                  element={<AdminReportEntryPage />}
                 />
-              }
-            />
-          </Routes>
+              </Route>
+
+              <Route
+                path="*"
+                element={
+                  <Navigate
+                    to={user ? roleHomePath(user.role) : "/login"}
+                    replace
+                  />
+                }
+              />
+            </Routes>
+          </CartProvider>
         </StoreProvider>
       </AuthProvider>
     </LocationProvider>
