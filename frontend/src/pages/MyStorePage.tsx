@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 
 import NavBar from "../components/NavBar";
 import { getOwnerStore, updateOwnerStore, type OwnerStore } from "../api/stores";
+import { useStores } from "../context/StoreContext";
 
 interface StoreFormState {
   name: string;
@@ -20,6 +21,7 @@ function formStateFromStore(store: OwnerStore): StoreFormState {
 }
 
 export default function MyStorePage() {
+  const { reload } = useStores();
   const [store, setStore] = useState<OwnerStore | null>(null);
   const [form, setForm] = useState<StoreFormState>({
     name: "",
@@ -82,9 +84,10 @@ export default function MyStorePage() {
 
     try {
       const updatedStore = await updateOwnerStore(form);
+      await reload();
       setStore(updatedStore);
       setForm(formStateFromStore(updatedStore));
-      setSuccess("Store details updated.");
+      setSuccess("Store details updated. Map data refreshed.");
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Unable to update store");
     } finally {

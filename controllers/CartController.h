@@ -6,34 +6,32 @@ namespace api {
 class CartController : public drogon::HttpController<CartController> {
 public:
   METHOD_LIST_BEGIN
-  ADD_METHOD_TO(CartController::createCart, "/api/carts", drogon::Post);
-  ADD_METHOD_TO(CartController::listCarts, "/api/carts", drogon::Get);
-  ADD_METHOD_TO(CartController::getCart, "/api/carts/{1}", drogon::Get);
-  ADD_METHOD_TO(CartController::addItem, "/api/carts/{1}/items", drogon::Post);
-  ADD_METHOD_TO(CartController::removeItem, "/api/carts/{1}/items/{2}", drogon::Delete);
+  ADD_METHOD_TO(CartController::getCart,       "/api/cart",           drogon::Get);
+  ADD_METHOD_TO(CartController::replaceCart,   "/api/cart",           drogon::Put);
+  ADD_METHOD_TO(CartController::optimizeCart,  "/api/cart/optimized", drogon::Get);
+  ADD_METHOD_TO(CartController::addItem,       "/api/cart/items",     drogon::Post);
+  ADD_METHOD_TO(CartController::removeItem,    "/api/cart/items/{1}", drogon::Delete);
   METHOD_LIST_END
-
-  void createCart(
-      const drogon::HttpRequestPtr &req,
-      std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
-
-  void listCarts(
-      const drogon::HttpRequestPtr &req,
-      std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
 
   void getCart(
       const drogon::HttpRequestPtr &req,
-      std::function<void(const drogon::HttpResponsePtr &)> &&callback,
-      int cartId) const;
+      std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
 
   void addItem(
       const drogon::HttpRequestPtr &req,
-      std::function<void(const drogon::HttpResponsePtr &)> &&callback,
-      int cartId) const;
+      std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
+
+  void optimizeCart(
+      const drogon::HttpRequestPtr &req,
+      std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
+
+  void replaceCart(
+      const drogon::HttpRequestPtr &req,
+      std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
 
   void removeItem(
       const drogon::HttpRequestPtr &req,
       std::function<void(const drogon::HttpResponsePtr &)> &&callback,
-      int cartId, int itemId) const;
+      int itemId) const;
 };
 } // namespace api

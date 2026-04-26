@@ -7,6 +7,8 @@
 
 #include "Accounts.h"
 #include "Admins.h"
+#include "CartItems.h"
+#include "Items.h"
 #include <drogon/utils/Utilities.h>
 #include <string>
 
@@ -1298,6 +1300,44 @@ void Accounts::getAccount(const DbClientPtr &clientPtr,
                     {
                         rcb(Admins(r[0]));
                     }
+               }
+               >> ecb;
+}
+std::vector<std::pair<Items,CartItems>> Accounts::getItems(const DbClientPtr &clientPtr) const {
+    static const std::string sql = "select * from items,cart_items where cart_items.account_id = $1 and cart_items.item_id = items.item_id";
+    Result r(nullptr);
+    {
+        auto binder = *clientPtr << sql;
+        binder << *accountId_ << Mode::Blocking >>
+            [&r](const Result &result) { r = result; };
+        binder.exec();
+    }
+    std::vector<std::pair<Items,CartItems>> ret;
+    ret.reserve(r.size());
+    for (auto const &row : r)
+    {
+        ret.emplace_back(std::pair<Items,CartItems>(
+            Items(row),CartItems(row,Items::getColumnNumber())));
+    }
+    return ret;
+}
+
+void Accounts::getItems(const DbClientPtr &clientPtr,
+                        const std::function<void(std::vector<std::pair<Items,CartItems>>)> &rcb,
+                        const ExceptionCallback &ecb) const
+{
+    static const std::string sql = "select * from items,cart_items where cart_items.account_id = $1 and cart_items.item_id = items.item_id";
+    *clientPtr << sql
+               << *accountId_
+               >> [rcb = std::move(rcb)](const Result &r){
+                   std::vector<std::pair<Items,CartItems>> ret;
+                   ret.reserve(r.size());
+                   for (auto const &row : r)
+                   {
+                       ret.emplace_back(std::pair<Items,CartItems>(
+                           Items(row),CartItems(row,Items::getColumnNumber())));
+                   }
+                   rcb(ret);
                }
                >> ecb;
 }

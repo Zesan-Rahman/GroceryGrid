@@ -21,6 +21,9 @@ class ReportController : public drogon::HttpController<ReportController>
     ADD_METHOD_TO(ReportController::dismissReport,
                   "/api/reports/entries/{1}/dismiss",
                   drogon::Post);
+    ADD_METHOD_TO(ReportController::checkUserReport,
+                  "/api/reports/entries/{1}/check-user",
+                  drogon::Get);
     METHOD_LIST_END
 
     void createReport(
@@ -42,6 +45,11 @@ class ReportController : public drogon::HttpController<ReportController>
         int entryId) const;
 
     void dismissReport(
+        const drogon::HttpRequestPtr &req,
+        std::function<void(const drogon::HttpResponsePtr &)> &&callback,
+        int entryId) const;
+
+    void checkUserReport(
         const drogon::HttpRequestPtr &req,
         std::function<void(const drogon::HttpResponsePtr &)> &&callback,
         int entryId) const;

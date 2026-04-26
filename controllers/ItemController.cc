@@ -163,4 +163,58 @@ void ItemController::getItem(
                     "items WHERE item_id = $1";
   dbClient()->execSqlAsync(sql, onItemResult, onItemError, itemId);
 }
+
+void ItemController::getPriceHistory(
+    const drogon::HttpRequestPtr &req,
+    std::function<void(const drogon::HttpResponsePtr &)> &&callback,
+    int itemId) const {
+  auto callbackPtr = std::make_shared<Callback>(std::move(callback));
+
+  auto onResult = [callbackPtr](const drogon::orm::Result &result) {
+    Json::Value history(Json::arrayValue);
+    for (const auto &row : result) {
+      Json::Value entry(Json::objectValue);
+      entry["entry_id"]    = row["entry_id"].as<int>();
+      entry["store_id"]    = row["store_id"].isNull()
+                               ? Json::Value(Json::nullValue)
+                               : row["store_id"].as<int>();
+      entry["store_name"]  = row["store_name"].isNull()
+                               ? Json::Value(Json::nullValue)
+                               : row["store_name"].as<std::string>();
+      entry["logged_price"] = row["logged_price"].as<double>();
+      entry["upload_date"] = row["upload_date"].isNull()
+                               ? ""
+                               : row["upload_date"].as<std::string>();
+      entry["price_date"]  = row["price_date"].isNull()
+                               ? ""
+                               : row["price_date"].as<std::string>();
+      history.append(entry);
+    }
+    sendJsonArray(callbackPtr, drogon::k200OK, std::move(history));
+  };
+
+  auto onError = [callbackPtr](const drogon::orm::DrogonDbException &e) {
+    LOG_ERROR << "Price history query failed: " << e.base().what();
+    Json::Value body(Json::objectValue);
+    body["message"] = "Unable to load price history";
+    sendJsonArray(callbackPtr, drogon::k500InternalServerError, std::move(body));
+  };
+
+  // Return all price entries for this item (not just latest-per-store)
+  // ordered newest first so the modal shows a true timeline.
+  std::string sql = R"(
+      SELECT
+          pe.entry_id,
+          pe.store_id,
+          s.name  AS store_name,
+          pe.logged_price,
+          pe.upload_date,
+          pe.price_date
+      FROM price_entries pe
+      LEFT JOIN stores s ON pe.store_id = s.store_id
+      WHERE pe.item_id = $1
+      ORDER BY pe.price_date DESC NULLS LAST, pe.upload_date DESC
+  )";
+  dbClient()->execSqlAsync(sql, onResult, onError, itemId);
+}
 } // namespace api

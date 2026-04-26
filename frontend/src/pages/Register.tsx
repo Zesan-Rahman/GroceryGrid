@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { register } from "../api/auth";
+import NavBar from "../components/NavBar";
 
 export default function Register() {
     const navigate = useNavigate();
@@ -27,47 +28,50 @@ export default function Register() {
     }
 
     return (
-        <main>
-            <h1>Register</h1>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="name">Name</label>
-                    <input
-                        id="name"
-                        value={name}
-                        onChange={(event) => setName(event.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label htmlFor="email">Email</label>
-                    <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(event) => setEmail(event.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label htmlFor="password">Password</label>
-                    <input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)}
-                        required
-                        minLength={8}
-                    />
-                </div>
-                {error ? <p>{error}</p> : null}
-                <button type="submit" disabled={loading}>
-                    {loading ? "Creating account..." : "Register"}
-                </button>
-            </form>
-            <p>
-                Already registered? <Link to="/login">Login</Link>
-            </p>
-        </main>
+        <>
+            <NavBar />
+            <main>
+                <h1>Register</h1>
+                <form onSubmit={handleSubmit}>
+                    <div>
+                        <label htmlFor="name">Name</label>
+                        <input
+                            id="name"
+                            value={name}
+                            onChange={(event) => setName(event.target.value)}
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="email">Email</label>
+                        <input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(event) => setEmail(event.target.value)}
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="password">Password</label>
+                        <input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(event) => setPassword(event.target.value)}
+                            required
+                            minLength={8}
+                        />
+                    </div>
+                    {error ? <p>{error}</p> : null}
+                    <button type="submit" disabled={loading}>
+                        {loading ? "Creating account..." : "Register"}
+                    </button>
+                </form>
+                <p>
+                    Already registered? <Link to="/login">Login</Link>
+                </p>
+            </main>
+        </>
     );
 }

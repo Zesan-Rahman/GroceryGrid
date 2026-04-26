@@ -44,15 +44,17 @@ class CartItems
   public:
     struct Cols
     {
-        static const std::string _cart_id;
+        static const std::string _account_id;
         static const std::string _item_id;
+        static const std::string _quantity;
+        static const std::string _price_entry_id;
     };
 
     static const int primaryKeyNumber;
     static const std::string tableName;
     static const bool hasPrimaryKey;
     static const std::vector<std::string> primaryKeyName;
-    using PrimaryKeyType = std::tuple<int32_t,int32_t>;//cart_id,item_id
+    using PrimaryKeyType = std::tuple<int32_t,int32_t>;//account_id,item_id
     PrimaryKeyType getPrimaryKey() const;
 
     /**
@@ -97,13 +99,13 @@ class CartItems
                           std::string &err,
                           bool isForCreation);
 
-    /**  For column cart_id  */
-    ///Get the value of the column cart_id, returns the default value if the column is null
-    const int32_t &getValueOfCartId() const noexcept;
+    /**  For column account_id  */
+    ///Get the value of the column account_id, returns the default value if the column is null
+    const int32_t &getValueOfAccountId() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<int32_t> &getCartId() const noexcept;
-    ///Set the value of the column cart_id
-    void setCartId(const int32_t &pCartId) noexcept;
+    const std::shared_ptr<int32_t> &getAccountId() const noexcept;
+    ///Set the value of the column account_id
+    void setAccountId(const int32_t &pAccountId) noexcept;
 
     /**  For column item_id  */
     ///Get the value of the column item_id, returns the default value if the column is null
@@ -113,8 +115,25 @@ class CartItems
     ///Set the value of the column item_id
     void setItemId(const int32_t &pItemId) noexcept;
 
+    /**  For column quantity  */
+    ///Get the value of the column quantity, returns the default value if the column is null
+    const int32_t &getValueOfQuantity() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<int32_t> &getQuantity() const noexcept;
+    ///Set the value of the column quantity
+    void setQuantity(const int32_t &pQuantity) noexcept;
 
-    static size_t getColumnNumber() noexcept {  return 2;  }
+    /**  For column price_entry_id  */
+    ///Get the value of the column price_entry_id, returns the default value if the column is null
+    const int32_t &getValueOfPriceEntryId() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<int32_t> &getPriceEntryId() const noexcept;
+    ///Set the value of the column price_entry_id
+    void setPriceEntryId(const int32_t &pPriceEntryId) noexcept;
+    void setPriceEntryIdToNull() noexcept;
+
+
+    static size_t getColumnNumber() noexcept {  return 4;  }
     static const std::string &getColumnName(size_t index) noexcept(false);
 
     Json::Value toJson() const;
@@ -136,8 +155,10 @@ class CartItems
     void updateArgs(drogon::orm::internal::SqlBinder &binder) const;
     ///For mysql or sqlite3
     void updateId(const uint64_t id);
-    std::shared_ptr<int32_t> cartId_;
+    std::shared_ptr<int32_t> accountId_;
     std::shared_ptr<int32_t> itemId_;
+    std::shared_ptr<int32_t> quantity_;
+    std::shared_ptr<int32_t> priceEntryId_;
     struct MetaData
     {
         const std::string colName_;
@@ -149,17 +170,17 @@ class CartItems
         const bool notNull_;
     };
     static const std::vector<MetaData> metaData_;
-    bool dirtyFlag_[2]={ false };
+    bool dirtyFlag_[4]={ false };
   public:
     static const std::string &sqlForFindingByPrimaryKey()
     {
-        static const std::string sql="select * from " + tableName + " where cart_id = $1 and item_id = $2";
+        static const std::string sql="select * from " + tableName + " where account_id = $1 and item_id = $2";
         return sql;
     }
 
     static const std::string &sqlForDeletingByPrimaryKey()
     {
-        static const std::string sql="delete from " + tableName + " where cart_id = $1 and item_id = $2";
+        static const std::string sql="delete from " + tableName + " where account_id = $1 and item_id = $2";
         return sql;
     }
     std::string sqlForInserting(bool &needSelection) const
@@ -169,12 +190,23 @@ class CartItems
         needSelection = false;
         if(dirtyFlag_[0])
         {
-            sql += "cart_id,";
+            sql += "account_id,";
             ++parametersCount;
         }
         if(dirtyFlag_[1])
         {
             sql += "item_id,";
+            ++parametersCount;
+        }
+        sql += "quantity,";
+        ++parametersCount;
+        if(!dirtyFlag_[2])
+        {
+            needSelection=true;
+        }
+        if(dirtyFlag_[3])
+        {
+            sql += "price_entry_id,";
             ++parametersCount;
         }
         if(parametersCount > 0)
@@ -194,6 +226,20 @@ class CartItems
             sql.append(placeholderStr, n);
         }
         if(dirtyFlag_[1])
+        {
+            n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
+            sql.append(placeholderStr, n);
+        }
+        if(dirtyFlag_[2])
+        {
+            n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
+            sql.append(placeholderStr, n);
+        }
+        else
+        {
+            sql +="default,";
+        }
+        if(dirtyFlag_[3])
         {
             n = snprintf(placeholderStr,sizeof(placeholderStr),"$%d,",placeholder++);
             sql.append(placeholderStr, n);

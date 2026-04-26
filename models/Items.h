@@ -38,8 +38,8 @@ namespace drogon_model
 {
 namespace main
 {
+class Accounts;
 class CartItems;
-class Carts;
 
 class Items
 {
@@ -146,10 +146,10 @@ class Items
     std::string toString() const;
     Json::Value toMasqueradedJson(const std::vector<std::string> &pMasqueradingVector) const;
     /// Relationship interfaces
-    std::vector<std::pair<Carts,CartItems>> getCarts(const drogon::orm::DbClientPtr &clientPtr) const;
-    void getCarts(const drogon::orm::DbClientPtr &clientPtr,
-                  const std::function<void(std::vector<std::pair<Carts,CartItems>>)> &rcb,
-                  const drogon::orm::ExceptionCallback &ecb) const;
+    std::vector<std::pair<Accounts,CartItems>> getAccounts(const drogon::orm::DbClientPtr &clientPtr) const;
+    void getAccounts(const drogon::orm::DbClientPtr &clientPtr,
+                     const std::function<void(std::vector<std::pair<Accounts,CartItems>>)> &rcb,
+                     const drogon::orm::ExceptionCallback &ecb) const;
   private:
     friend drogon::orm::Mapper<Items>;
     friend drogon::orm::BaseBuilder<Items, true, true>;
