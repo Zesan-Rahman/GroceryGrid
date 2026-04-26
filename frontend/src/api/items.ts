@@ -42,3 +42,15 @@ export async function submitEntryReport(
     throw new Error(data.message ?? "Failed to submit report");
   }
 }
+
+export async function checkUserReport(entryId: number): Promise<boolean> {
+  const res = await fetch(`/api/reports/entries/${entryId}/check-user`, {
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(data.message ?? "Failed to check user report");
+  }
+  const data = await res.json() as { success: boolean; has_reported: boolean };
+  return data.has_reported;
+}

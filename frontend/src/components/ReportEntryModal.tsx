@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { PriceHistoryEntry } from "../api/items";
-import { submitEntryReport } from "../api/items";
+import { checkUserReport, submitEntryReport } from "../api/items";
 import "./ReportEntryModal.css";
 
 interface Props {
@@ -19,8 +19,25 @@ export default function ReportEntryModal({
   const [reason, setReason] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [hasReported, setHasReported] = useState<boolean | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Check if user already reported
+  useEffect(() => {
+    let active = true;
+    checkUserReport(entry.entry_id)
+      .then((reported) => {
+        if (active) setHasReported(reported);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (active) setHasReported(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [entry.entry_id]);
 
   // Focus textarea on mount
   useEffect(() => {
@@ -99,7 +116,19 @@ export default function ReportEntryModal({
         </div>
 
         {/* Body */}
-        {status === "success" ? (
+        {hasReported === null ? (
+           <div className="re-form">
+              <p style={{ textAlign: "center", color: "#888", padding: "20px 0" }}>Loading...</p>
+           </div>
+        ) : hasReported ? (
+          <div className="re-success">
+            <span className="re-success-icon" style={{ color: "#e65100", background: "rgba(230, 81, 0, 0.1)" }}>!</span>
+            <p>You have already reported this price entry.</p>
+            <button className="re-btn re-btn--primary" onClick={onClose}>
+              Close
+            </button>
+          </div>
+        ) : status === "success" ? (
           <div className="re-success">
             <span className="re-success-icon">✓</span>
             <p>Your report has been submitted for admin review.</p>
