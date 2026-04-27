@@ -132,7 +132,7 @@ body {
 }
 
 .nav-cart-btn {
-  background: var(--accent);
+  background: var(--primary);
   color: var(--text-on-accent);
 }
 
