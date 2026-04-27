@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+  # ─── PostgreSQL ────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: grocerygrid
+      POSTGRES_USER: grocery_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - pgdata_grocery:/var/lib/postgresql/data
+      - ./schema/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./seeds:/seeds:ro
+      - ./seeds/02-run-seeds.sh:/docker-entrypoint-initdb.d/02-run-seeds.sh:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d grocerygrid -U grocery_user" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ─── GroceryGrid backend + static frontend ─────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: grocerygrid
+      PGUSER: grocery_user
+      # Only used by the entrypoint's optional INIT_DB path
+      DATABASE_URL: "postgresql://grocery_user:${POSTGRES_PASSWORD:-changeme}@db:5432/grocerygrid"
+      INIT_DB: "false"
+    secrets:
+      - config_json
+      - model_json
+    volumes:
+      - uploads:/app/uploads
+
+# ─── Secrets ──────────────────────────────────────────────────────────────────
+# All three files must exist on the host before running `docker compose up`.
+# Add all of them to .gitignore — use the template_* counterparts as references.
+secrets:
+  config_json:
+    file: ./config.json # Drogon runtime config  (DB connection, listeners, etc.)
+  model_json:
+    file: ./models/model.json # Drogon ORM model config (DB connection for codegen/runtime)
+
+volumes:
+  pgdata_grocery:
+  uploads:
