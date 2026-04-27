@@ -5,7 +5,7 @@ export default function Contribute() {
     return (
         <>
             <NavBar />
-            <main>
+            <main className="wide-page">
                 <UploadReceipts />
             </main>
         </>

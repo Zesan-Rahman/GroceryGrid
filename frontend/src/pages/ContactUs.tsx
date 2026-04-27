@@ -37,18 +37,18 @@ export default function ContactUs() {
                             <div className="info-steps">
                                 <div className="info-step">
                                     <strong>1. Send your request</strong>
-                                    Email <a href="mailto:grocerygrid@gmail.com">grocerygrid@gmail.com</a>{" "}
-                                    with your store information.
+                                    <p>Email <a href="mailto:grocerygrid@gmail.com">grocerygrid@gmail.com</a>{" "}
+                                        with your store information.</p>
                                 </div>
                                 <div className="info-step">
                                     <strong>2. We review the details</strong>
-                                    We verify the store information and confirm that the account should
-                                    be linked to that location.
+                                    <p>We verify the store information and confirm that the account should
+                                        be linked to that location.</p>
                                 </div>
                                 <div className="info-step">
                                     <strong>3. We follow up</strong>
-                                    Our team will reach out with next steps once the request has been
-                                    reviewed.
+                                    <p>Our team will reach out with next steps once the request has been
+                                        reviewed.</p>
                                 </div>
                             </div>
                         </section>

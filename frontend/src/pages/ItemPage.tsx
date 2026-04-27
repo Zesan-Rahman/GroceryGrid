@@ -22,7 +22,6 @@ interface PriceEntry {
 interface ItemDetails {
   internal_id: number;
   item_name: string;
-  category: string;
   image_url: string;
   price_entries: PriceEntry[];
 }
@@ -74,6 +73,9 @@ export default function ItemPage() {
         setItem(data);
         setError("");
       })
+      .then(() => {
+        // No op to fix type issue if any
+      })
       .catch((err) => {
         setError(err.message);
       })
@@ -96,87 +98,88 @@ export default function ItemPage() {
   return (
     <>
       <NavBar />
-      <main className="item-page-container">
-        {loading ? (
-          <p className="loading-text">Loading...</p>
-        ) : error ? (
-          <div className="error-message">{error}</div>
-        ) : item ? (
-          <div className="item-details-card">
-            <div className="item-header">
-              {item.image_url ? (
-                <img src={item.image_url} alt={item.item_name} className="item-detail-image" />
-              ) : (
-                <div className="item-detail-image placeholder-image" />
-              )}
-              <div className="item-info">
-                <h1>{item.item_name}</h1>
-                <span className="category-badge">{item.category}</span>
+      <main className="standard-page">
+        <div className="item-page-container">
+          {loading ? (
+            <p className="loading-text">Loading...</p>
+          ) : error ? (
+            <div className="error-message">{error}</div>
+          ) : item ? (
+            <div className="item-details-card">
+              <div className="item-header">
+                {item.image_url ? (
+                  <img src={item.image_url} alt={item.item_name} className="item-detail-image" />
+                ) : (
+                  <div className="item-detail-image placeholder-image" />
+                )}
+                <div className="item-info">
+                  <h1>{item.item_name}</h1>
+                </div>
+              </div>
+
+              <div className="price-entries-section">
+                <h2>Recent Prices</h2>
+                {item.price_entries && item.price_entries.length > 0 ? (
+                  <div className="table-responsive">
+                    <table className="price-table">
+                      <thead>
+                        <tr>
+                          <th>Store</th>
+                          <th>Price</th>
+                          <th>Date Logged</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {item.price_entries.map((entry) => (
+                          <tr key={entry.entry_id}>
+                            <td>
+                              <Link to={`/stores/${entry.store_id}/catalog`} className="store-link">
+                                {entry.store_name}
+                              </Link>
+                            </td>
+                            <td className="price-cell">${entry.logged_price.toFixed(2)}</td>
+                            <td>{new Date(entry.price_date).toLocaleDateString()}</td>
+                            <td>
+                              <div className="action-buttons">
+                                <button
+                                  className="action-btn add-cart-btn"
+                                  disabled={cartStatus[entry.entry_id] === "adding" || cartStatus[entry.entry_id] === "added"}
+                                  onClick={() => handleAddToCart(entry.entry_id)}
+                                >
+                                  {cartStatus[entry.entry_id] === "adding"
+                                    ? (<><span className="material-icons">hourglass_empty</span><span className="btn-text">Adding...</span></>)
+                                    : cartStatus[entry.entry_id] === "added"
+                                      ? (<><span className="material-icons">check</span><span className="btn-text">Added</span></>)
+                                      : cartStatus[entry.entry_id] === "error"
+                                        ? (<><span className="material-icons">error</span><span className="btn-text">Error — retry</span></>)
+                                        : (<><span className="material-icons">add_shopping_cart</span><span className="btn-text">Add to Cart</span></>)}
+                                </button>
+                                <button
+                                  className="action-btn history-btn"
+                                  onClick={() =>
+                                    setHistoryTarget({
+                                      id: item.internal_id,
+                                      name: item.item_name,
+                                    })
+                                  }
+                                >
+                                  <span className="material-icons">timeline</span><span className="btn-text">View Price History</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="no-prices-msg">No price history available.</p>
+                )}
               </div>
             </div>
-
-            <div className="price-entries-section">
-              <h2>Recent Prices</h2>
-              {item.price_entries && item.price_entries.length > 0 ? (
-                <div className="table-responsive">
-                  <table className="price-table">
-                    <thead>
-                      <tr>
-                        <th>Store</th>
-                        <th>Price</th>
-                        <th>Date Logged</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {item.price_entries.map((entry) => (
-                        <tr key={entry.entry_id}>
-                          <td>
-                            <Link to={`/stores/${entry.store_id}/catalog`} className="store-link">
-                              {entry.store_name}
-                            </Link>
-                          </td>
-                          <td className="price-cell">${entry.logged_price.toFixed(2)}</td>
-                          <td>{new Date(entry.price_date).toLocaleDateString()}</td>
-                          <td>
-                            <div className="action-buttons">
-                              <button
-                                className="action-btn add-cart-btn"
-                                disabled={cartStatus[entry.entry_id] === "adding" || cartStatus[entry.entry_id] === "added"}
-                                onClick={() => handleAddToCart(entry.entry_id)}
-                              >
-                                {cartStatus[entry.entry_id] === "adding"
-                                  ? "Adding…"
-                                  : cartStatus[entry.entry_id] === "added"
-                                  ? "Added ✓"
-                                  : cartStatus[entry.entry_id] === "error"
-                                  ? "Error — retry"
-                                  : "Add to Cart"}
-                              </button>
-                              <button
-                                className="action-btn history-btn"
-                                onClick={() =>
-                                  setHistoryTarget({
-                                    id: item.internal_id,
-                                    name: item.item_name,
-                                  })
-                                }
-                              >
-                                View Price History
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="no-prices-msg">No price history available.</p>
-              )}
-            </div>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </main>
 
       {/* Lazy-loaded price history modal */}

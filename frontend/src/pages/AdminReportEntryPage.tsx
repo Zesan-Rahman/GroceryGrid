@@ -120,14 +120,16 @@ export default function AdminReportEntryPage() {
             <div className="report-actions">
               <button
                 type="button"
+                className="textButton"
                 disabled={activeAction !== null}
                 onClick={() => void handleDelete()}
               >
                 {activeAction === "delete" ? "Working..." : "Delete Entry"}
               </button>
+              <br />
               <button
                 type="button"
-                className="button-secondary"
+                className="textButton"
                 disabled={activeAction !== null}
                 onClick={() => void handleDismiss()}
               >

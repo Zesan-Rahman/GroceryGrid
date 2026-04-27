@@ -40,11 +40,11 @@ export default function AboutUs() {
               <div className="info-steps">
                 <div className="info-step">
                   <strong>Founded</strong>
-                  {FOUNDED_YEAR}
+                  <p>{FOUNDED_YEAR}</p>
                 </div>
                 <div className="info-step">
                   <strong>Team Members</strong>
-                  {TEAM_MEMBERS.length} contributors
+                  <p>{TEAM_MEMBERS.length}</p>
                 </div>
                 <div className="info-step">
                   <strong>Contact</strong>
@@ -53,6 +53,7 @@ export default function AboutUs() {
               </div>
             </section>
 
+            {/*
             <section className="info-section">
               <h2>Meet the Team</h2>
               <div className="team-grid">
@@ -66,6 +67,7 @@ export default function AboutUs() {
                 ))}
               </div>
             </section>
+            */}
           </div>
 
           <footer className="info-footer">

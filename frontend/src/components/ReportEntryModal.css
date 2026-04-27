@@ -1,249 +1,148 @@
-/* ================================================================
-   Report Entry Modal — ReportEntryModal.css
-   ================================================================ */
+/* Report Entry Modal */
 
-/* Overlay — sits on top of the price history modal's overlay ------ */
 .re-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1100; /* above ph-overlay (1000) */
-  background: rgba(10, 10, 20, 0.45);
-  backdrop-filter: blur(3px);
+  z-index: 2100;
+  background: rgba(13, 2, 33, 0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  animation: re-fade-in 0.15s ease;
+  padding: 1rem;
 }
 
-@keyframes re-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* Modal card ----------------------------------------------------- */
 .re-modal {
-  background: #ffffff;
-  border-radius: 14px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: re-slide-up 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid var(--border-light);
 }
 
-@keyframes re-slide-up {
-  from { transform: translateY(20px) scale(0.97); opacity: 0; }
-  to   { transform: translateY(0)    scale(1);    opacity: 1; }
-}
-
-/* Header --------------------------------------------------------- */
 .re-header {
+  padding: 1.5rem 2rem;
+  background: var(--bg-surface-soft);
+  border-bottom: 1px solid var(--border-light);
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  padding: 20px 20px 16px;
-  background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  align-items: center;
 }
 
 .re-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 1.2px;
+  font-size: 0.75rem;
+  font-weight: 800;
   text-transform: uppercase;
-  color: #e65100;
-  margin-bottom: 4px;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
   display: block;
 }
 
 .re-title {
   margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #1a1a2e;
-  line-height: 1.2;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 
 .re-close-btn {
-  background: rgba(230, 81, 0, 0.1);
+  background: var(--bg-base);
   border: none;
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
+  border-radius: var(--radius-full);
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
-  color: #e65100;
   cursor: pointer;
-  flex-shrink: 0;
-  margin-top: 2px;
-  transition: background 0.18s;
+  transition: var(--transition-fast);
+  color: var(--text-primary);
 }
+
 .re-close-btn:hover {
-  background: rgba(230, 81, 0, 0.18);
+  background: var(--accent);
+  color: #fff;
 }
 
-/* Entry summary -------------------------------------------------- */
 .re-entry-summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 12px 20px;
-  background: #fafafa;
-  border-bottom: 1px solid #eee;
-  font-size: 0.85rem;
-}
-
-.re-summary-store {
+  padding: 1rem 2rem;
+  background: var(--bg-surface-soft);
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border-light);
   font-weight: 600;
-  color: #333;
 }
 
-.re-summary-price {
-  font-weight: 700;
-  color: #2e7d32;
-}
-
-.re-summary-date {
-  color: #888;
-}
-
-.re-summary-sep {
-  color: #ccc;
-}
-
-/* Form ----------------------------------------------------------- */
 .re-form {
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 20px;
-}
-
-.re-field-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #444;
+  gap: 1.5rem;
 }
 
 .re-textarea {
   width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid #ddd;
-  border-radius: 8px;
-  font-size: 0.88rem;
+  padding: 1rem;
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-soft);
   font-family: inherit;
+  font-size: 1rem;
   resize: vertical;
-  min-height: 90px;
-  transition: border-color 0.18s, box-shadow 0.18s;
-  box-sizing: border-box;
-  color: #222;
-}
-.re-textarea:focus {
-  outline: none;
-  border-color: #e65100;
-  box-shadow: 0 0 0 3px rgba(230, 81, 0, 0.12);
-}
-.re-textarea:disabled {
-  background: #f5f5f5;
-  color: #999;
+  min-height: 120px;
+  transition: var(--transition-main);
 }
 
-/* Buttons -------------------------------------------------------- */
+.re-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-surface);
+  box-shadow: 0 0 0 4px rgba(242, 129, 35, 0.1);
+}
+
 .re-actions {
   display: flex;
-  gap: 10px;
+  gap: 1rem;
   justify-content: flex-end;
 }
 
-.re-btn {
-  padding: 8px 18px;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.18s;
+.re-btn--primary {
+  background: var(--accent);
+  color: var(--text-on-accent);
 }
 
-.re-btn--primary {
-  background: #e65100;
-  color: #fff;
-}
 .re-btn--primary:hover:not(:disabled) {
-  background: #bf360c;
-}
-.re-btn--primary:disabled {
-  background: #ffccbc;
-  color: #fff;
-  cursor: default;
+  background: var(--accent-hover);
 }
 
 .re-btn--ghost {
   background: transparent;
-  color: #666;
-  border: 1.5px solid #ddd;
-}
-.re-btn--ghost:hover:not(:disabled) {
-  background: #f5f5f5;
-  color: #333;
-}
-.re-btn--ghost:disabled {
-  opacity: 0.5;
-  cursor: default;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-main);
 }
 
-/* Error ---------------------------------------------------------- */
-.re-error {
-  color: #c62828;
-  background: #ffebee;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 0.83rem;
-  margin: 0;
+.re-btn--ghost:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
-/* Success state -------------------------------------------------- */
 .re-success {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  padding: 28px 20px;
+  padding: 3rem;
   text-align: center;
-  color: #333;
-  font-size: 0.95rem;
 }
 
 .re-success-icon {
-  width: 52px;
-  height: 52px;
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  background: var(--bg-base);
+  color: var(--primary);
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-/* Responsive ----------------------------------------------------- */
-@media (max-width: 480px) {
-  .re-modal {
-    border-radius: 10px;
-  }
-  .re-actions {
-    flex-direction: column-reverse;
-  }
-  .re-btn {
-    width: 100%;
-    text-align: center;
-  }
+  margin: 0 auto 1.5rem;
+  font-size: 2rem;
 }

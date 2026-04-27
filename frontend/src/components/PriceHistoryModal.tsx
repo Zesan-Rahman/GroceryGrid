@@ -98,7 +98,7 @@ export default function PriceHistoryModal({ itemId, itemName, onClose }: Props) 
               <h2 className="ph-title">{itemName}</h2>
             </div>
             <button className="ph-close-btn" onClick={onClose} aria-label="Close">
-              ✕
+              <span className="material-icons">close</span>
             </button>
           </div>
 
@@ -168,11 +168,11 @@ export default function PriceHistoryModal({ itemId, itemName, onClose }: Props) 
                                       {cartStatus[e.entry_id] === "adding"
                                         ? "Adding…"
                                         : cartStatus[e.entry_id] === "added"
-                                          ? "Added ✓"
+                                          ? "Added"
                                           : "Add"}
                                     </button>
                                     <button
-                                      className="ph-report-link"
+                                      className="ph-action-btn ph-report-btn"
                                       onClick={() => setReportTarget(e)}
                                     >
                                       Report

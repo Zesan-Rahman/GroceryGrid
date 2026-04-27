@@ -1,7 +1,6 @@
 export interface CartItem {
   internal_id: number;
   item_name: string;
-  category: string;
   image_url: string;
   quantity: number;
   price: number | null;

@@ -9,13 +9,11 @@ import { useCart } from "../context/CartContext";
 export default function CartPage() {
   const { cart, loading, error, refreshCart } = useCart();
   const [removing, setRemoving] = useState<Record<number, boolean>>({});
-  
+
   const [showOptimizeModal, setShowOptimizeModal] = useState(false);
   const [miles, setMiles] = useState(5);
   const { location } = useLocation();
   const navigate = useNavigate();
-
-
 
   async function handleRemove(itemId: number) {
     setRemoving((prev) => ({ ...prev, [itemId]: true }));
@@ -33,13 +31,13 @@ export default function CartPage() {
     <>
       <LocationRibbon />
       <NavBar />
-      <main>
+      <main className="standard-page">
         <h1>My Cart</h1>
 
         {loading ? (
           <p>Loading cart…</p>
         ) : error ? (
-          <p>Error: {error}</p>
+          <p className="status-error">Error: {error}</p>
         ) : cart && cart.items.length > 0 ? (
           <table>
             <thead>
@@ -55,18 +53,19 @@ export default function CartPage() {
               {cart.items.map((item) => (
                 <tr key={item.internal_id}>
                   <td>
-                    <Link to={`/items/${item.internal_id}`}>{item.item_name}</Link>
-                    {item.category && <span> ({item.category})</span>}
+                    <Link to={`/items/${item.internal_id}`} style={{ fontWeight: 700 }}>{item.item_name}</Link>
                   </td>
                   <td>{item.quantity}</td>
-                  <td>{item.price != null ? `$${item.price.toFixed(2)}` : "—"}</td>
+                  <td style={{ fontWeight: 800, color: "var(--primary)" }}>{item.price != null ? `$${item.price.toFixed(2)}` : "—"}</td>
                   <td>
                     {item.store_id != null
-                      ? <Link to={`/stores/${item.store_id}/catalog`}>{item.store_name}</Link>
+                      ? <Link to={`/user/home?focusStoreId=${item.store_id}`} style={{ color: "inherit" }}>{item.store_name}</Link>
                       : "—"}
                   </td>
                   <td>
                     <button
+                      className="button-secondary"
+                      style={{ padding: "0.4rem 1rem", fontSize: "0.8rem" }}
                       disabled={removing[item.internal_id]}
                       onClick={() => handleRemove(item.internal_id)}
                     >
@@ -82,44 +81,46 @@ export default function CartPage() {
         )}
 
         {cart && cart.items.length > 0 && (
-          <div style={{ marginTop: "1rem" }}>
+          <div style={{ marginTop: "2rem", textAlign: "right" }}>
             <button onClick={() => setShowOptimizeModal(true)}>Optimize Cart</button>
           </div>
         )}
 
         {showOptimizeModal && (
-          <div style={{
-            position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
-            backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center"
-          }}>
-            <div style={{ backgroundColor: "#fff", padding: "2rem", borderRadius: "8px", maxWidth: "400px", width: "100%", color: "#333" }}>
+          <div className="modal-overlay" onClick={() => setShowOptimizeModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h2>Optimize Cart</h2>
-              <p>Find the lowest prices for your items from stores near you.</p>
-              
-              <div style={{ margin: "1rem 0" }}>
-                <label style={{ display: "block", marginBottom: "0.5rem" }}>Search Radius (miles):</label>
-                <input 
-                  type="number" 
-                  value={miles} 
+              <p style={{ color: "var(--text-secondary)", marginBottom: "2rem" }}>
+                Find the lowest prices for your items from stores near you.
+              </p>
+
+              <div className="form-group" style={{ marginBottom: "2rem" }}>
+                <label>Search Radius (miles)</label>
+                <input
+                  type="number"
+                  value={miles}
                   onChange={(e) => setMiles(Number(e.target.value))}
                   min="1"
                   max="100"
-                  style={{ width: "100%", padding: "0.5rem" }}
                 />
               </div>
 
               {!location ? (
-                <div style={{ margin: "1rem 0" }}>
-                  <p style={{ color: "red", fontSize: "0.9rem", marginBottom: "0.5rem" }}>Location is required to optimize.</p>
+                <div style={{ margin: "1.5rem 0", padding: "1rem", background: "rgba(242, 129, 35, 0.1)", borderRadius: "var(--radius-md)" }}>
+                  <p style={{ color: "var(--error)", fontSize: "0.9rem", fontWeight: 700, marginBottom: "0.75rem" }}>
+                    Location is required to optimize.
+                  </p>
                   <LocationButton label="Get Location" />
                 </div>
               ) : (
-                <p style={{ fontSize: "0.9rem", color: "green", margin: "1rem 0" }}>Location acquired!</p>
+                <p style={{ fontSize: "0.95rem", color: "var(--success)", fontWeight: 700, margin: "1.5rem 0" }}>
+                  Location acquired!
+                </p>
               )}
 
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "1rem" }}>
-                <button onClick={() => setShowOptimizeModal(false)}>Cancel</button>
-                <button 
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "2rem" }}>
+                <button className="button-secondary" onClick={() => setShowOptimizeModal(false)}>Cancel</button>
+                <button
                   disabled={!location}
                   onClick={() => {
                     if (location) {
