@@ -1,0 +1,21 @@
+# Build artifacts
+build/
+frontend/node_modules/
+frontend/dist/
+
+# Git
+.git/
+.gitignore
+
+# Editor / OS noise
+.vscode/
+.idea/
+**/.DS_Store
+*.swp
+
+# Secrets — never bake these into the image
+.env
+*.env
+config.json
+models/model.json
+uploads
