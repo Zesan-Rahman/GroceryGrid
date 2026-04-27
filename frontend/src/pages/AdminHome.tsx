@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import type { AuthUser } from "../api/auth";
 import { getOpenReportEntries, type OpenReportEntrySummary } from "../api/reports";
 import NavBar from "../components/NavBar";
+import "./AdminHome.css";
 
 interface AdminHomeProps {
   user: AuthUser | null;
@@ -16,9 +17,9 @@ export default function AdminHome({ user }: AdminHomeProps) {
   const [error, setError] = useState("");
   const statusMessage =
     typeof location.state === "object" &&
-    location.state !== null &&
-    "statusMessage" in location.state &&
-    typeof location.state.statusMessage === "string"
+      location.state !== null &&
+      "statusMessage" in location.state &&
+      typeof location.state.statusMessage === "string"
       ? location.state.statusMessage
       : "";
 
@@ -47,8 +48,10 @@ export default function AdminHome({ user }: AdminHomeProps) {
       <main className="admin-page">
         <h1>Admin Home</h1>
         <p>Welcome {user?.name || user?.email || "admin"}.</p>
+        <br />
         <section className="admin-reports-section">
-          <h2>Open Reported Entries</h2>
+          <h2>Current Open Reports</h2>
+          <br />
           {statusMessage ? <p className="status-success">{statusMessage}</p> : null}
           {error ? <p className="status-error">{error}</p> : null}
           {loading ? <p>Loading reports...</p> : null}

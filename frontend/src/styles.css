@@ -70,7 +70,7 @@ body {
   gap: 2rem;
   padding: 1rem 2rem;
   background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 6px solid var(--primary);
   box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
@@ -659,8 +659,10 @@ input::placeholder {
 .info-card {
   background: var(--bg-surface);
   padding: 4rem;
+  margin: 4rem;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
+  width: auto;
 }
 
 .info-section {
@@ -669,6 +671,8 @@ input::placeholder {
 }
 
 .info-step {
+  display: flex;
+  flex-direction: column;
   background: var(--bg-surface-soft);
   padding: 1.5rem;
   border-radius: var(--radius-md);
