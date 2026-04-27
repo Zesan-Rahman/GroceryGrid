@@ -74,7 +74,7 @@ export default function ItemPage() {
         setError("");
       })
       .then(() => {
-          // No op to fix type issue if any
+        // No op to fix type issue if any
       })
       .catch((err) => {
         setError(err.message);
@@ -148,12 +148,12 @@ export default function ItemPage() {
                                   onClick={() => handleAddToCart(entry.entry_id)}
                                 >
                                   {cartStatus[entry.entry_id] === "adding"
-                                    ? "Adding…"
+                                    ? (<><span className="material-icons">hourglass_empty</span><span className="btn-text">Adding...</span></>)
                                     : cartStatus[entry.entry_id] === "added"
-                                    ? "Added ✓"
-                                    : cartStatus[entry.entry_id] === "error"
-                                    ? "Error — retry"
-                                    : "Add to Cart"}
+                                      ? (<><span className="material-icons">check</span><span className="btn-text">Added</span></>)
+                                      : cartStatus[entry.entry_id] === "error"
+                                        ? (<><span className="material-icons">error</span><span className="btn-text">Error — retry</span></>)
+                                        : (<><span className="material-icons">add_shopping_cart</span><span className="btn-text">Add to Cart</span></>)}
                                 </button>
                                 <button
                                   className="action-btn history-btn"
@@ -164,7 +164,7 @@ export default function ItemPage() {
                                     })
                                   }
                                 >
-                                  View Price History
+                                  <span className="material-icons">timeline</span><span className="btn-text">View Price History</span>
                                 </button>
                               </div>
                             </td>
