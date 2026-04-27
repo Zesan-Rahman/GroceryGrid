@@ -89,7 +89,6 @@ export default function StoreCatalogPage() {
             {storeCatalog.map((item) => (
               <div key={item.entry_id} className="catalog-entry">
                 <p className="catalog-entry-name">{item.name}</p>
-                <p>{item.category}</p>
                 <p>${item.price.toFixed(2)}</p>
                 <p>Last updated: {item.last_updated}</p>
                 <Link to={`/items/${item.item_id}`}>View Item</Link>

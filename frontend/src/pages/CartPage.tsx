@@ -54,7 +54,6 @@ export default function CartPage() {
                 <tr key={item.internal_id}>
                   <td>
                     <Link to={`/items/${item.internal_id}`} style={{ fontWeight: 700 }}>{item.item_name}</Link>
-                    {item.category && <span style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}> ({item.category})</span>}
                   </td>
                   <td>{item.quantity}</td>
                   <td style={{ fontWeight: 800, color: "var(--primary)" }}>{item.price != null ? `$${item.price.toFixed(2)}` : "—"}</td>

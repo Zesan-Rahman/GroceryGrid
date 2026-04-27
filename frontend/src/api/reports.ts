@@ -1,7 +1,6 @@
 export interface CatalogItemDetails {
   item_id: number;
   name: string;
-  category: string;
   price: number;
   last_updated: string;
 }
@@ -82,7 +81,6 @@ export async function submitPriceReport(
       item_details: {
         item_id: entry.item_id,
         name: entry.name,
-        category: entry.category,
         price: entry.price,
         last_updated: entry.last_updated,
       },

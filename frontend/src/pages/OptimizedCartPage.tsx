@@ -90,7 +90,7 @@ export default function OptimizedCartPage() {
     return (
       <tr key={origItem.internal_id}>
         <td>
-          {origItem.item_name} {origItem.category && `(${origItem.category})`}
+          {origItem.item_name}
           <br />
           <small>Qty: {origItem.quantity}</small>
         </td>

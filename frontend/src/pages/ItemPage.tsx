@@ -22,7 +22,6 @@ interface PriceEntry {
 interface ItemDetails {
   internal_id: number;
   item_name: string;
-  category: string;
   image_url: string;
   price_entries: PriceEntry[];
 }
@@ -115,7 +114,6 @@ export default function ItemPage() {
                 )}
                 <div className="item-info">
                   <h1>{item.item_name}</h1>
-                  <span className="category-badge">{item.category}</span>
                 </div>
               </div>
 

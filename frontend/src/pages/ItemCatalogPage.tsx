@@ -6,7 +6,6 @@ import "./ItemCatalogPage.css";
 interface Item {
   internal_id: number;
   item_name: string;
-  category: string;
   image_url: string;
 }
 
@@ -75,7 +74,6 @@ export default function ItemCatalogPage() {
                     <div className="item-image placeholder-image" />
                   )}
                   <p className="item-name">{item.item_name}</p>
-                  <p className="item-category">{item.category}</p>
                 </Link>
               ))}
             </div>
