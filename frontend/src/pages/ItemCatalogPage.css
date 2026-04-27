@@ -1,5 +1,5 @@
 .item-catalog-container {
-  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   padding: 3rem 2rem;
 }
@@ -12,7 +12,6 @@
 .search-input {
   padding: 1rem 1.5rem;
   width: 100%;
-  max-width: 600px;
   font-size: 1.1rem;
   background: var(--bg-surface);
   border: 2px solid var(--border-light);

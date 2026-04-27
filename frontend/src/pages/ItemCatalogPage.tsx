@@ -49,7 +49,7 @@ export default function ItemCatalogPage() {
   return (
     <>
       <NavBar />
-      <main className="wide-page">
+      <main>
         <div className="item-catalog-container">
           <h1>Item Catalog</h1>
           <div className="search-container">
