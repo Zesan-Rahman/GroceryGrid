@@ -700,7 +700,7 @@ input::placeholder {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1038px) {
   main {
     margin: 2rem 1rem;
     padding: 2rem;
