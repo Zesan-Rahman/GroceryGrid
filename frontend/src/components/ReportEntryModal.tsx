@@ -102,7 +102,7 @@ export default function ReportEntryModal({
             <h2 className="re-title">{itemName}</h2>
           </div>
           <button className="re-close-btn" onClick={onClose} aria-label="Close">
-            ✕
+            <span className="material-icons">close</span>
           </button>
         </div>
 
@@ -117,12 +117,12 @@ export default function ReportEntryModal({
 
         {/* Body */}
         {hasReported === null ? (
-           <div className="re-form">
-              <p style={{ textAlign: "center", color: "#888", padding: "20px 0" }}>Loading...</p>
-           </div>
+          <div className="re-form">
+            <p style={{ textAlign: "center", color: "#888", padding: "20px 0" }}>Loading...</p>
+          </div>
         ) : hasReported ? (
           <div className="re-success">
-            <span className="re-success-icon" style={{ color: "#e65100", background: "rgba(230, 81, 0, 0.1)" }}>!</span>
+            <span className="re-success-icon" style={{ color: "#e65100", background: "rgba(230, 81, 0, 0.1)" }}><span className="material-icons">info</span></span>
             <p>You have already reported this price entry.</p>
             <button className="re-btn re-btn--primary" onClick={onClose}>
               Close
@@ -130,7 +130,7 @@ export default function ReportEntryModal({
           </div>
         ) : status === "success" ? (
           <div className="re-success">
-            <span className="re-success-icon">✓</span>
+            <span className="re-success-icon"><span className="material-icons">check</span></span>
             <p>Your report has been submitted for admin review.</p>
             <button className="re-btn re-btn--primary" onClick={onClose}>
               Close
