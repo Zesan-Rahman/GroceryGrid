@@ -60,7 +60,7 @@ export default function CartPage() {
                   <td style={{ fontWeight: 800, color: "var(--primary)" }}>{item.price != null ? `$${item.price.toFixed(2)}` : "—"}</td>
                   <td>
                     {item.store_id != null
-                      ? <Link to={`/stores/${item.store_id}/catalog`} style={{ color: "inherit" }}>{item.store_name}</Link>
+                      ? <Link to={`/user/home?focusStoreId=${item.store_id}`} style={{ color: "inherit" }}>{item.store_name}</Link>
                       : "—"}
                   </td>
                   <td>

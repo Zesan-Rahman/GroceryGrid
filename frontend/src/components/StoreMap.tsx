@@ -12,7 +12,7 @@ import {
     useState,
 } from "react";
 import { MapContainer, TileLayer, useMap, Marker, Popup } from "react-leaflet";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import L from "leaflet";
 import "leaflet.markercluster";
 
@@ -389,9 +389,25 @@ export default function StoreMap({ height = "100%" }: StoreMapProps) {
         focusStoreRef.current = focusStore;
     });
 
+    const [searchParams] = useSearchParams();
+
     function handleSelectStore(storeId: number) {
         focusStoreRef.current?.(storeId);
     }
+
+    useEffect(() => {
+        const storeIdStr = searchParams.get("focusStoreId");
+        if (storeIdStr) {
+            const storeId = parseInt(storeIdStr, 10);
+            if (!isNaN(storeId)) {
+                // Give the map/clusters a moment to initialize
+                const timer = setTimeout(() => {
+                    focusStoreRef.current?.(storeId);
+                }, 500);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [searchParams]);
 
     return (
         <div className="store-map-shell" style={{ height }}>
