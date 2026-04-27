@@ -6,7 +6,7 @@
   --border: #d8c8b0;
   --accent: #264027;
   --accent-secondary: #F28123;
-  
+
   --sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   --heading: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
@@ -33,7 +33,10 @@ body {
   background-color: var(--bg);
 }
 
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   font-family: var(--heading);
   font-weight: 800;
   color: var(--text);

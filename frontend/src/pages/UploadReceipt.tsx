@@ -48,8 +48,10 @@ interface Store {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const UploadReceipts: React.FC = () => {
+    const [step, setStep] = useState(1);
+
     //Scanning
-    const [images, setImages] = useState<UploadedReceipt[]>([]);
+    const [image, setImage] = useState<UploadedReceipt | null>(null);
     const [scanResult, setScanResult] = useState<TabScannerResult | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -77,12 +79,6 @@ const UploadReceipts: React.FC = () => {
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [submitSuccess, setSubmitSuccess] = useState(false);
 
-    const lineItems = (scanResult?.lineItems && scanResult.lineItems.length > 0)
-        ? scanResult.lineItems
-        : (scanResult?.summaryItems && scanResult.summaryItems.length > 0)
-            ? scanResult.summaryItems
-            : null;
-
     useEffect(() => {
         if (scanResult) {
             const source = (scanResult.lineItems && scanResult.lineItems.length > 0)
@@ -97,24 +93,26 @@ const UploadReceipts: React.FC = () => {
 
     //Scanning functions
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        const newImages = files.map((file) => ({
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const newImage = {
             file,
             previewUrl: URL.createObjectURL(file),
-        }));
-        setImages((prev) => [...prev, ...newImages]);
-        // Clear previous results when new images are selected
+        };
+        setImage(newImage);
         setScanResult(null);
         setError(null);
         setUploadStatus(null);
     };
 
-    const handleRemove = (index: number) => {
-        setImages((prev) => prev.filter((_, i) => i !== index));
+    const handleRemove = () => {
+        setImage(null);
+        setScanResult(null);
     };
 
     const handleUploadAndScan = async () => {
-        if (images.length === 0) return;
+        if (!image) return;
 
         setLoading(true);
         setError(null);
@@ -122,9 +120,7 @@ const UploadReceipts: React.FC = () => {
         setUploadStatus("Uploading image...");
 
         const formData = new FormData();
-        // Only send the most recently added image to TabScanner
-
-        formData.append("images", images[images.length - 1].file);
+        formData.append("images", image.file);
 
         try {
             const response = await fetch(`${siteLink}/api/upload`, {
@@ -138,11 +134,11 @@ const UploadReceipts: React.FC = () => {
 
             setUploadStatus("Scanning receipt...");
             const data: TabScannerResponse = await response.json();
-            console.log("Full response:", JSON.stringify(data, null, 2));
 
             if (data.success && data.result) {
                 setScanResult(data.result);
                 setUploadStatus("Scan complete!");
+                setTimeout(() => setStep(2), 500);
             } else {
                 setError(data.message || "Failed to scan receipt");
                 setUploadStatus(null);
@@ -192,6 +188,7 @@ const UploadReceipts: React.FC = () => {
         setNewItemPrice("");
         setNewItemQty("1");
     };
+
     //Search
     const handleStoreSearch = async () => {
         if (!storeQuery.trim()) return;
@@ -219,7 +216,7 @@ const UploadReceipts: React.FC = () => {
 
     //Upload to db
     const handleSubmitReceipt = async () => {
-        if (!selectedStore || images.length === 0) return;
+        if (!selectedStore || !image) return;
         setSubmitLoading(true);
         setSubmitError(null);
         setSubmitSuccess(false);
@@ -228,14 +225,12 @@ const UploadReceipts: React.FC = () => {
             const formData = new FormData();
             formData.append("storeName", selectedStore.name);
             formData.append("storeAddress", selectedStore.address);
-            formData.append("rawImageFile", images[images.length - 1].file.name);
-            // send items as a JSON string
+            formData.append("rawImageFile", image.file.name);
             const itemsPayload = JSON.stringify(items.map((item) => ({
                 descClean: item.descClean,
                 price: item.editedPrice !== undefined ? item.editedPrice : item.price,
                 date: scanResult?.date ?? null,
             })));
-            console.log("Submitting items:", itemsPayload);
             formData.append("items", itemsPayload);
             const response = await fetch(`${siteLink}/api/receipts/upload`, {
                 method: "POST",
@@ -244,139 +239,139 @@ const UploadReceipts: React.FC = () => {
 
             if (!response.ok) throw new Error("Upload failed");
             setSubmitSuccess(true);
+            setStep(4);
         } catch (err) {
             setSubmitError("Failed to upload receipt to database.");
         } finally {
             setSubmitLoading(false);
         }
     };
+
     return (
-        <div className="page">
-            <h1 className="title">Upload Receipt</h1>
+        <div className="page wizard-page">
+            <div className="progress-bar">
+                <div className={`progress-step ${step >= 1 ? "active" : ""}`}>1. Upload</div>
+                <div className={`progress-step ${step >= 2 ? "active" : ""}`}>2. Verify</div>
+                <div className={`progress-step ${step >= 3 ? "active" : ""}`}>3. Store</div>
+                <div className={`progress-step ${step >= 4 ? "active" : ""}`}>4. Done</div>
+            </div>
 
-            {/* Upload Box */}
-            <label className="uploadBox">
-                <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                />
-                <span className="uploadText">Click to select receipt image from device</span>
-            </label>
+            {step === 1 && (
+                <div className="wizard-step step-upload">
+                    <h1 className="wizard-title">Upload Receipt</h1>
+                    <p className="step-desc">Help the community by contributing to our price database!</p>
 
-            {/* Image Previews */}
-            {images.length > 0 && (
-                <div className="previewGrid">
-                    {images.map((img, index) => (
-                        <div key={index} className="previewCard">
-                            <img src={img.previewUrl} alt={img.file.name} className="previewImg" />
-                            <p className="fileName">{img.file.name}</p>
-                            <button onClick={() => handleRemove(index)} className="removeBtn">
-                                Remove
-                            </button>
+                    {!image ? (
+                        <label className="uploadBox">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                style={{ display: "none" }}
+                            />
+                            <span className="material-icons">attach_file</span>
+                            <span className="uploadText">Click to select receipt image</span>
+                        </label>
+                    ) : (
+                        <div className="full-size-preview">
+                            <img src={image.previewUrl} alt="Receipt Preview" className="large-receipt-img" />
+                            <div className="image-overlay-actions">
+                                <button className="button-secondary" onClick={handleRemove}>Change Image</button>
+                            </div>
                         </div>
-                    ))}
+                    )}
+
+                    {image && (
+                        <div className="step-actions">
+                            <button
+                                onClick={handleUploadAndScan}
+                                className="uploadBtn main-action-btn"
+                                disabled={loading}
+                            >
+                                {loading ? "Processing..." : "Scan Receipt"}
+                            </button>
+                            {uploadStatus && <p className="statusText">{uploadStatus}</p>}
+                            {error && <p className="errorText">{error}</p>}
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Upload & Scan Button */}
-            {images.length > 0 && (
-                <div className="uploadBtnContainer">
-                    <button
-                        onClick={handleUploadAndScan}
-                        className="uploadBtn"
-                        disabled={loading}
-                    >
-                        {loading ? "Processing..." : "Scan Receipt"}
-                    </button>
-                    <p> Note: Only the last image uploaded will be scanned</p>
-                    {uploadStatus && <p className="statusText">{uploadStatus}</p>}
-                </div>
-            )}
+            {step === 2 && scanResult && (
+                <div className="wizard-step step-verify">
+                    <h1 className="wizard-title">Does this look right?</h1>
+                    <p className="step-desc">We've extracted the items below. Please verify prices and quantities.</p>
 
-            {/* Error Message */}
-            {error && <p className="errorText">{error}</p>}
+                    <div className="resultsContainer">
+                        <table className="lineItemsTable">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                    <th>Edit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items.map((item, index) => {
+                                    const total = item.editedPrice !== undefined
+                                        ? item.editedPrice * (item.qty || 1)
+                                        : item.lineTotal;
+                                    const unitPrice = item.editedPrice !== undefined
+                                        ? item.editedPrice
+                                        : item.price;
 
-            {/* TabScanner Results */}
-            {scanResult && (
-                <div className="resultsContainer">
-                    <h2 className="resultsTitle">Scan Results</h2>
-
-                    {/* Line Items */}
-                    {items.length > 0 && (
-                        <div className="resultsSection">
-                            <h3 className="resultsSectionTitle">Items Bought</h3>
-                            <table className="lineItemsTable">
-                                <thead>
-                                    <tr>
-                                        <th>Description</th>
-                                        <th>Qty</th>
-                                        <th>Unit Price</th>
-                                        <th>Total</th>
-                                        <th>Edit</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {items.map((item, index) => {
-                                        const total = item.editedPrice !== undefined
-                                            ? item.editedPrice * (item.qty || 1)
-                                            : item.lineTotal;
-                                        const unitPrice = item.editedPrice !== undefined
-                                            ? item.editedPrice
-                                            : item.price;
-
-                                        return (
-                                            <tr key={index}>
-                                                <td>{item.descClean}</td>
-                                                <td>
-                                                    {editingIndex === index ? (
+                                    return (
+                                        <tr key={index}>
+                                            <td>{item.descClean}</td>
+                                            <td>
+                                                {editingIndex === index ? (
+                                                    <input
+                                                        type="number"
+                                                        value={editQty}
+                                                        onChange={(e) => setEditQty(e.target.value)}
+                                                        className="editInput"
+                                                    />
+                                                ) : (
+                                                    item.qty || "-"
+                                                )}
+                                            </td>
+                                            <td>{`${scanResult?.currency ?? ""}${unitPrice.toFixed(2)}`}</td>
+                                            <td>
+                                                {editingIndex === index ? (
+                                                    <div className="inline-edit">
                                                         <input
                                                             type="number"
-                                                            value={editQty}
-                                                            onChange={(e) => setEditQty(e.target.value)}
+                                                            value={editTotalPrice}
+                                                            onChange={(e) => setEditTotalPrice(e.target.value)}
                                                             className="editInput"
-                                                            placeholder="Qty"
                                                         />
-                                                    ) : (
-                                                        item.qty || "-"
-                                                    )}
-                                                </td>
-                                                <td>{`${scanResult?.currency ?? ""}${unitPrice.toFixed(2)}`}</td>
-                                                <td>
-                                                    {editingIndex === index ? (
-                                                        <span>
-                                                            <input
-                                                                type="number"
-                                                                value={editTotalPrice}
-                                                                onChange={(e) => setEditTotalPrice(e.target.value)}
-                                                                className="editInput"
-                                                                placeholder="Total"
-                                                            />
-                                                            <button onClick={() => handleEditSave(index)} className="saveBtn">
-                                                                Save
-                                                            </button>
-                                                        </span>
-                                                    ) : (
-                                                        `${scanResult?.currency ?? ""}${total.toFixed(2)}`
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    {editingIndex !== index && (
-                                                        <button onClick={() => handleEditClick(index)} className="editBtn">
-                                                            Edit
+                                                        <button onClick={() => handleEditSave(index)} className="saveBtn">
+                                                            Save
                                                         </button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                                                    </div>
+                                                ) : (
+                                                    `${scanResult?.currency ?? ""}${total.toFixed(2)}`
+                                                )}
+                                            </td>
+                                            <td>
+                                                {editingIndex !== index && (
+                                                    <button onClick={() => handleEditClick(index)} className="editBtn">
+                                                        Edit
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
 
-                            {/* Adding items */}
+                        <div className="missing-item-section">
+                            <h3 className="resultsSectionTitle">Missing item? Add it here</h3>
                             <div className="addItemRow">
+                                <span>Item Name:</span>
                                 <input
                                     type="text"
                                     placeholder="Item Name"
@@ -384,6 +379,7 @@ const UploadReceipts: React.FC = () => {
                                     onChange={(e) => setNewItemDesc(e.target.value)}
                                     className="addItemInput"
                                 />
+                                <span>Quantity:</span>
                                 <input
                                     type="number"
                                     placeholder="Qty"
@@ -391,6 +387,7 @@ const UploadReceipts: React.FC = () => {
                                     onChange={(e) => setNewItemQty(e.target.value)}
                                     className="addItemInput"
                                 />
+                                <span>Total Price:</span>
                                 <input
                                     type="number"
                                     placeholder="Total Price"
@@ -403,40 +400,45 @@ const UploadReceipts: React.FC = () => {
                                 </button>
                             </div>
                         </div>
-                    )}
-                </div>
-            )}
-            {/* Store Search */}
-            {scanResult && (
-                <div className="storeSearchSection">
-                    <h2 className="storeSearchTitle">Find the Store</h2>
-                    <p className="storeSearchSubtitle">Search for the store this receipt is from</p>
-
-                    <div className="searchBar">
-                        <input
-                            type="text"
-                            placeholder="Search by name or address..."
-                            value={storeQuery}
-                            onChange={(e) => setStoreQuery(e.target.value)}
-                            onKeyDown={handleStoreKeyDown}
-                            className="searchInput"
-                        />
-                        <button
-                            onClick={handleStoreSearch}
-                            className="searchBtn"
-                            disabled={storeLoading}
-                        >
-                            {storeLoading ? "Searching..." : "Search"}
-                        </button>
                     </div>
 
-                    {storeError && <p className="searchError">{storeError}</p>}
+                    <div className="step-actions wizard-nav">
+                        <button className="button-secondary" onClick={() => setStep(1)}>Back</button>
+                        <button className="main-action-btn" onClick={() => setStep(3)}>Next</button>
+                    </div>
+                </div>
+            )}
 
-                    {searched && !storeLoading && storeResults.length === 0 && (
-                        <p className="noResults">No stores found for "{storeQuery}"</p>
-                    )}
+            {step === 3 && (
+                <div className="wizard-step step-store">
+                    <h1 className="wizard-title">Select Store</h1>
+                    <p className="step-desc">Which store is this receipt from?</p>
 
-                    {storeResults.length > 0 && (
+                    <div className="storeSearchSection">
+                        <div className="searchBar">
+                            <input
+                                type="text"
+                                placeholder="Search by name or address..."
+                                value={storeQuery}
+                                onChange={(e) => setStoreQuery(e.target.value)}
+                                onKeyDown={handleStoreKeyDown}
+                                className="searchInput"
+                            />
+                            <button
+                                onClick={handleStoreSearch}
+                                className="searchBtn"
+                                disabled={storeLoading}
+                            >
+                                {storeLoading ? "Searching..." : "Search"}
+                            </button>
+                        </div>
+
+                        {storeError && <p className="searchError">{storeError}</p>}
+
+                        {searched && !storeLoading && storeResults.length === 0 && (
+                            <p className="noResults">No stores found for "{storeQuery}"</p>
+                        )}
+
                         <div className="storeResultsList">
                             {storeResults.map((store, index) => (
                                 <div
@@ -449,23 +451,38 @@ const UploadReceipts: React.FC = () => {
                                 </div>
                             ))}
                         </div>
-                    )}
-                    {selectedStore && (
-                        <div className="submitSection">
-                            <p className="selectedStoreText">
-                                Selected store: <strong>{selectedStore.name}</strong>
-                            </p>
-                            <button
-                                onClick={handleSubmitReceipt}
-                                className="submitBtn"
-                                disabled={submitLoading || submitSuccess}
-                            >
-                                {submitLoading ? "Uploading..." : "Upload Receipt to Database"}
-                            </button>
-                            {submitError && <p className="searchError">{submitError}</p>}
-                            {submitSuccess && <p className="submitSuccess">Receipt uploaded successfully!</p>}
-                        </div>
-                    )}
+                    </div>
+
+                    <div className="step-actions wizard-nav">
+                        <button className="button-secondary" onClick={() => setStep(2)}>Back</button>
+                        <button
+                            className="main-action-btn"
+                            disabled={!selectedStore || submitLoading}
+                            onClick={handleSubmitReceipt}
+                        >
+                            {submitLoading ? "Uploading..." : "Finish: Save Receipt"}
+                        </button>
+                    </div>
+                    {submitError && <p className="errorText">{submitError}</p>}
+                </div>
+            )}
+
+            {step === 4 && (
+                <div className="wizard-step step-success">
+                    <h1 className="wizard-title">Thank You!</h1>
+                    <p className="step-desc">Your receipt has been uploaded and prices have been updated.</p>
+                    <div className="step-actions">
+                        <button className="main-action-btn" onClick={() => {
+                            setStep(1);
+                            setImage(null);
+                            setScanResult(null);
+                            setSelectedStore(null);
+                            setSubmitSuccess(false);
+                            setSearched(false);
+                            setStoreResults([]);
+                            setStoreQuery("");
+                        }}>Upload Another Receipt</button>
+                    </div>
                 </div>
             )}
         </div>
