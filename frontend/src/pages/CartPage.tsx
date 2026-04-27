@@ -9,7 +9,7 @@ import { useCart } from "../context/CartContext";
 export default function CartPage() {
   const { cart, loading, error, refreshCart } = useCart();
   const [removing, setRemoving] = useState<Record<number, boolean>>({});
-  
+
   const [showOptimizeModal, setShowOptimizeModal] = useState(false);
   const [miles, setMiles] = useState(5);
   const { location } = useLocation();
@@ -93,12 +93,12 @@ export default function CartPage() {
               <p style={{ color: "var(--text-secondary)", marginBottom: "2rem" }}>
                 Find the lowest prices for your items from stores near you.
               </p>
-              
+
               <div className="form-group" style={{ marginBottom: "2rem" }}>
                 <label>Search Radius (miles)</label>
-                <input 
-                  type="number" 
-                  value={miles} 
+                <input
+                  type="number"
+                  value={miles}
                   onChange={(e) => setMiles(Number(e.target.value))}
                   min="1"
                   max="100"
@@ -114,13 +114,13 @@ export default function CartPage() {
                 </div>
               ) : (
                 <p style={{ fontSize: "0.95rem", color: "var(--success)", fontWeight: 700, margin: "1.5rem 0" }}>
-                  ✓ Location acquired!
+                  Location acquired!
                 </p>
               )}
 
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "2rem" }}>
                 <button className="button-secondary" onClick={() => setShowOptimizeModal(false)}>Cancel</button>
-                <button 
+                <button
                   disabled={!location}
                   onClick={() => {
                     if (location) {

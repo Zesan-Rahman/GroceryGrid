@@ -29,7 +29,7 @@
 }
 
 .location-ribbon-button {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--primary);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: var(--text-on-primary);
   padding: 0.5rem 1.25rem;
@@ -41,12 +41,6 @@
   cursor: pointer;
   transition: var(--transition-main);
   backdrop-filter: blur(8px);
-}
-
-.location-ribbon-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
 }
 
 .location-update-button {

@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { getCart, getOptimizedCart, replaceCart, type Cart, type CartItem } from "../api/cart";
+import "./OptimizedCartPage.css";
 
 export default function OptimizedCartPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+
   const miles = Number(searchParams.get("miles")) || 5;
   const lat = Number(searchParams.get("lat")) || 0;
   const lng = Number(searchParams.get("lng")) || 0;
@@ -29,7 +30,7 @@ export default function OptimizedCartPage() {
       .then(([orig, opt]) => {
         setOriginalCart(orig);
         setOptimizedCart(opt);
-        
+
         // Default to optimized if available, otherwise original
         const initialSelections: Record<number, boolean> = {};
         for (const item of orig.items) {
@@ -49,13 +50,13 @@ export default function OptimizedCartPage() {
 
   async function handleSave() {
     if (!originalCart || !optimizedCart) return;
-    
+
     setSaving(true);
     try {
       const itemsToSave = originalCart.items.map(origItem => {
         const useOpt = selections[origItem.internal_id];
         const optItem = optimizedCart.items.find(i => i.internal_id === origItem.internal_id);
-        
+
         let priceEntryId = origItem.price_entry_id;
         if (useOpt && optItem && optItem.price_entry_id != null) {
           priceEntryId = optItem.price_entry_id;
@@ -87,54 +88,57 @@ export default function OptimizedCartPage() {
   function renderItemChoice(origItem: CartItem, optItem?: CartItem) {
     const useOpt = selections[origItem.internal_id];
 
+    const hasDeal = !!(optItem && optItem.price_entry_id != null);
+
     return (
       <tr key={origItem.internal_id}>
-        <td>
-          {origItem.item_name}
-          <br />
-          <small>Qty: {origItem.quantity}</small>
+        <td className="item-info-cell">
+          <strong>{origItem.item_name}</strong>
+          <span>Qty: {origItem.quantity}</span>
         </td>
-        
+
         {/* Original */}
-        <td style={{ backgroundColor: !useOpt ? "#e6f7ff" : "transparent" }}>
-          <label style={{ display: "flex", gap: "0.5rem", alignItems: "center", cursor: "pointer" }}>
-            <input 
-              type="radio" 
-              name={`item-${origItem.internal_id}`} 
+        <td className={`choice-cell is-original ${!useOpt ? "selected" : ""}`}>
+          <label>
+            <input
+              type="radio"
+              className="choice-radio"
+              name={`item-${origItem.internal_id}`}
               checked={!useOpt}
               onChange={() => toggleSelection(origItem.internal_id, false)}
             />
-            <div>
-              {origItem.price != null ? `$${origItem.price.toFixed(2)}` : "No price"}
-              <br />
-              <small>{origItem.store_name || "Unknown Store"}</small>
+            <div className="price-box">
+              <span className="price-value">
+                {origItem.price != null ? `$${origItem.price.toFixed(2)}` : "—"}
+              </span>
+              <span className="store-name-small">{origItem.store_name || "Unknown Store"}</span>
             </div>
           </label>
         </td>
 
         {/* Optimized */}
-        <td style={{ backgroundColor: useOpt ? "#f6ffed" : "transparent" }}>
-          {optItem && optItem.price_entry_id != null ? (
-            <label style={{ display: "flex", gap: "0.5rem", alignItems: "center", cursor: "pointer" }}>
-              <input 
-                type="radio" 
-                name={`item-${origItem.internal_id}`} 
+        <td className={`choice-cell is-optimized ${useOpt ? "selected" : ""} ${!hasDeal ? "is-disabled" : ""}`}>
+          {hasDeal ? (
+            <label>
+              <input
+                type="radio"
+                className="choice-radio"
+                name={`item-${origItem.internal_id}`}
                 checked={useOpt}
                 onChange={() => toggleSelection(origItem.internal_id, true)}
               />
-              <div>
-                ${optItem.price!.toFixed(2)}
-                <br />
-                <small>{optItem.store_name}</small>
-                {origItem.price != null && optItem.price! < origItem.price && (
-                  <span style={{ color: "green", marginLeft: "0.5rem", fontSize: "0.8rem", fontWeight: "bold" }}>
-                    Save ${(origItem.price - optItem.price!).toFixed(2)}!
+              <div className="price-box">
+                <span className="price-value">${optItem!.price!.toFixed(2)}</span>
+                <span className="store-name-small">{optItem!.store_name}</span>
+                {origItem.price != null && optItem!.price! < origItem.price && (
+                  <span className="savings-badge">
+                    Save ${(origItem.price - optItem!.price!).toFixed(2)}!
                   </span>
                 )}
               </div>
             </label>
           ) : (
-            <span style={{ color: "#999" }}>No deals within {miles} miles</span>
+            <span className="no-deal-msg">No deals within {miles} miles</span>
           )}
         </td>
       </tr>
@@ -145,49 +149,58 @@ export default function OptimizedCartPage() {
     <>
       <NavBar />
       <main className="wide-page">
-        <h1>Optimize Cart</h1>
-        <p>Comparing prices within {miles} miles of your location.</p>
+        <div className="optimized-cart-container">
+          <h1 className="title">Deal Finder</h1>
+          <p className="sub">We've found better prices at stores within <strong>{miles} miles</strong> of your location.</p>
 
-        {loading ? (
-          <p>Finding the best deals...</p>
-        ) : error ? (
-          <p style={{ color: "red" }}>Error: {error}</p>
-        ) : originalCart && optimizedCart ? (
-          <>
-            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "1rem" }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "left", borderBottom: "2px solid #eee", padding: "0.5rem" }}>Item</th>
-                  <th style={{ textAlign: "left", borderBottom: "2px solid #eee", padding: "0.5rem" }}>Original Cart</th>
-                  <th style={{ textAlign: "left", borderBottom: "2px solid #eee", padding: "0.5rem" }}>Optimized (Best Deal)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {originalCart.items.map(origItem => {
-                  const optItem = optimizedCart.items.find(i => i.internal_id === origItem.internal_id);
-                  return renderItemChoice(origItem, optItem);
-                })}
-              </tbody>
-            </table>
-
-            {originalCart.items.length === 0 && <p>Your cart is empty.</p>}
-
-            <div style={{ marginTop: "2rem", display: "flex", gap: "1rem" }}>
-              <button 
-                onClick={() => navigate("/cart")} 
-                style={{ backgroundColor: "#ccc", color: "#333" }}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleSave} 
-                disabled={saving || originalCart.items.length === 0}
-              >
-                {saving ? "Saving..." : "Save Optimized Cart"}
-              </button>
+          {loading ? (
+            <div className="loading-state">
+              <p>Scanning the neighborhood for better prices...</p>
             </div>
-          </>
-        ) : null}
+          ) : error ? (
+            <p className="errorText">Error: {error}</p>
+          ) : originalCart && optimizedCart ? (
+            <>
+              <table className="comparison-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Original Cart</th>
+                    <th>Best Deal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {originalCart.items.map(origItem => {
+                    const optItem = optimizedCart.items.find(i => i.internal_id === origItem.internal_id);
+                    return renderItemChoice(origItem, optItem);
+                  })}
+                </tbody>
+              </table>
+
+              {originalCart.items.length === 0 && (
+                <div className="empty-state">
+                  <p>Your cart is empty.</p>
+                </div>
+              )}
+
+              <div className="footer-actions">
+                <button
+                  className="button-secondary"
+                  onClick={() => navigate("/cart")}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="main-action-btn"
+                  onClick={handleSave}
+                  disabled={saving || originalCart.items.length === 0}
+                >
+                  {saving ? "Saving..." : "Save Cart"}
+                </button>
+              </div>
+            </>
+          ) : null}
+        </div>
       </main>
     </>
   );

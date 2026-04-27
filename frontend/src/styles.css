@@ -62,6 +62,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.title {
+  text-align: center;
+}
+
+.sub {
+  text-align: center;
+}
+
 /* --- Navigation --- */
 .nav-bar {
   display: flex;
