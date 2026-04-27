@@ -77,7 +77,6 @@ const UploadReceipts: React.FC = () => {
     const [selectedStore, setSelectedStore] = useState<Store | null>(null);
     const [submitLoading, setSubmitLoading] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
-    const [submitSuccess, setSubmitSuccess] = useState(false);
 
     useEffect(() => {
         if (scanResult) {
@@ -219,7 +218,6 @@ const UploadReceipts: React.FC = () => {
         if (!selectedStore || !image) return;
         setSubmitLoading(true);
         setSubmitError(null);
-        setSubmitSuccess(false);
 
         try {
             const formData = new FormData();
@@ -238,7 +236,6 @@ const UploadReceipts: React.FC = () => {
             });
 
             if (!response.ok) throw new Error("Upload failed");
-            setSubmitSuccess(true);
             setStep(4);
         } catch (err) {
             setSubmitError("Failed to upload receipt to database.");
@@ -477,7 +474,6 @@ const UploadReceipts: React.FC = () => {
                             setImage(null);
                             setScanResult(null);
                             setSelectedStore(null);
-                            setSubmitSuccess(false);
                             setSearched(false);
                             setStoreResults([]);
                             setStoreQuery("");

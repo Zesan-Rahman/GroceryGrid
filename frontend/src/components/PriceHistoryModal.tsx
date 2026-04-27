@@ -118,9 +118,6 @@ export default function PriceHistoryModal({ itemId, itemName, onClose }: Props) 
               <>
                 {/* Per-store sections */}
                 {Object.entries(byStore).map(([storeName, entries]) => {
-                  const prices = entries.map((e) => e.logged_price);
-                  const min = Math.min(...prices);
-                  const max = Math.max(...prices);
                   return (
                     <section key={storeName} className="ph-store-section">
                       <div className="ph-store-header">
