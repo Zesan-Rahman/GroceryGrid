@@ -11,7 +11,7 @@ import {
     useRef,
     useState,
 } from "react";
-import { MapContainer, TileLayer, useMap, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, useMap, Marker, Popup, ZoomControl } from "react-leaflet";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import L from "leaflet";
 import "leaflet.markercluster";
@@ -287,35 +287,32 @@ const StoreSearchSidebar = memo(function StoreSearchSidebar({
                     onClick={() => setSidebarCollapsed(false)}
                     aria-expanded="false"
                 >
-                    Search Stores
+                    <span className="material-icons">search</span>
                 </button>
             ) : (
                 <div className="store-search-panel">
                     <div className="store-search-panel-header">
-                        <div>
-                            <p className="store-search-eyebrow">Store Finder</p>
+                        <p className="store-search-eyebrow">Store Finder</p>
+                        <div className="store-search-header-main">
                             <h2>Search Stores</h2>
+                            <button
+                                type="button"
+                                className=""
+                                onClick={() => setSidebarCollapsed(true)}
+                                aria-label="Minimize store search"
+                            >
+                                Minimize
+                            </button>
                         </div>
-                        <button
-                            type="button"
-                            className="store-search-minimize"
-                            onClick={() => setSidebarCollapsed(true)}
-                            aria-label="Minimize store search"
-                        >
-                            Hide
-                        </button>
                     </div>
 
-                    <label className="store-search-label" htmlFor="store-map-search">
-                        Store name
-                    </label>
                     <input
                         id="store-map-search"
                         type="search"
                         className="store-search-input"
                         value={query}
                         onChange={(event) => setQuery(event.target.value)}
-                        placeholder="Start typing a store name"
+                        placeholder="Enter a store name..."
                     />
 
                     <div className="store-search-results" role="list">
@@ -333,7 +330,7 @@ const StoreSearchSidebar = memo(function StoreSearchSidebar({
                             ))
                         ) : (
                             <p className="store-search-empty">
-                                No close matches yet. Try a different spelling or a shorter name.
+                                No matches.
                             </p>
                         )}
                     </div>
@@ -425,9 +422,11 @@ export default function StoreMap({ height = "100%" }: StoreMapProps) {
                 ]}
                 maxBoundsViscosity={1.0}
                 scrollWheelZoom
+                zoomControl={false}
                 className="store-map"
                 style={{ height: "100%", width: "100%" }}
             >
+                <ZoomControl position="bottomright" />
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
