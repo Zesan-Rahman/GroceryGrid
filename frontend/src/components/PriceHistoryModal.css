@@ -157,5 +157,4 @@
 
 .ph-add-cart-btn:hover:not(:disabled) {
   background-color: var(--primary-hover);
-  transform: translateY(-1px);
 }

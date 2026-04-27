@@ -317,12 +317,10 @@ td:last-child {
 @keyframes modal-up {
   from {
     opacity: 0;
-    transform: translateY(20px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -346,12 +344,10 @@ button {
 
 button:hover {
   background: var(--primary-hover);
-  transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(38, 64, 39, 0.25);
 }
 
 button:active {
-  transform: translateY(0);
   background: var(--primary-active);
 }
 
@@ -559,7 +555,6 @@ input::placeholder {
 .store-search-result:hover {
   background: var(--bg-surface);
   border-color: var(--primary);
-  transform: translateX(4px);
 }
 
 .store-search-empty {
@@ -643,7 +638,6 @@ input::placeholder {
 }
 
 .owner-store-metric-card:hover {
-  transform: translateY(-4px);
   box-shadow: var(--shadow-md);
   border-color: var(--primary);
 }
