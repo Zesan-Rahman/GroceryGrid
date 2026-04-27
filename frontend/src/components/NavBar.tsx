@@ -41,6 +41,9 @@ export default function NavBar() {
 
   return (
     <nav className="nav-bar" aria-label="Primary">
+      <div className="nav-brand" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
+        GroceryGrid
+      </div>
       <div className="nav-links">
         {links.map((link) => (
           <Link key={link.to} to={link.to}>
@@ -50,16 +53,16 @@ export default function NavBar() {
       </div>
       <div className="nav-actions">
         {role === "user" && (
-          <button type="button" className="nav-logout" onClick={() => navigate("/cart")}>
+          <button type="button" className="nav-cart-btn" onClick={() => navigate("/cart")}>
             My Cart
           </button>
         )}
         {role ? (
-          <button type="button" className="nav-logout" onClick={() => void handleLogout()}>
+          <button type="button" className="nav-logout-btn" onClick={() => void handleLogout()}>
             Logout
           </button>
         ) : (
-          <button type="button" className="nav-logout" onClick={() => navigate("/login")}>
+          <button type="button" className="nav-login-btn" onClick={() => navigate("/login")}>
             Login
           </button>
         )}

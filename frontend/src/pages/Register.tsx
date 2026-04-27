@@ -30,7 +30,7 @@ export default function Register() {
     return (
         <>
             <NavBar />
-            <main>
+            <main className="auth-page">
                 <h1>Register</h1>
                 <form onSubmit={handleSubmit}>
                     <div>

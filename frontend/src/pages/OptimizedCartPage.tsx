@@ -144,7 +144,7 @@ export default function OptimizedCartPage() {
   return (
     <>
       <NavBar />
-      <main>
+      <main className="wide-page">
         <h1>Optimize Cart</h1>
         <p>Comparing prices within {miles} miles of your location.</p>
 

@@ -46,7 +46,7 @@ export default function Login({ onLogin }: LoginProps) {
   return (
     <>
       <NavBar />
-      <main>
+      <main className="auth-page">
         <h1>Login</h1>
         <form onSubmit={handleSubmit}>
           <div>
