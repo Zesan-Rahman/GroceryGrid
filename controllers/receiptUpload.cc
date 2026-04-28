@@ -205,18 +205,18 @@ void errorHandler(std::function<void(const HttpResponsePtr&)> callback, std::str
 }
 
 std::string getReceiptImagesDir(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>& callback) {
-    std::string lastSavedPath;
-    std::string account_id = std::to_string(req->session()->get<int>("account_id"));
-    std::string path = std::filesystem::current_path();
-    std::string groceryGrid = "GroceryGrid";
-    // Set right path for receipt uploads
-    size_t found = path.find(groceryGrid);
-    if (found != std::string::npos) {
-        path = path.substr(0, found + groceryGrid.length());
-        lastSavedPath = path + "/uploads/" + account_id + "/";  //+ file.getFileName();
-        if (!std::filesystem::exists(lastSavedPath)) std::filesystem::create_directories(lastSavedPath);
-        return lastSavedPath;
-    } else {
+    auto accountId = req->session()->getOptional<int>("account_id");
+    if (!accountId) {
+        return "";
+    }
+
+    try {
+        const auto uploadsRoot = std::filesystem::current_path() / "uploads";
+        const auto receiptDir = uploadsRoot / std::to_string(*accountId);
+        std::filesystem::create_directories(receiptDir);
+        return (receiptDir.string() + "/");
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "failed to create receipt upload directory: " << e.what() << std::endl;
         return "";
     }
 }
