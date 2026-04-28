@@ -71,6 +71,11 @@ void UploadController::uploadReceipt(const HttpRequestPtr& req,
         errorHandler(callback, "{\"error\":\"failed to get raw image file\"}");
         return;
     }
+    auto accountId = req->session()->getOptional<int>("account_id");
+    if (!accountId) {
+        errorHandler(callback, "{\"error\":\"not logged in\"}");
+        return;
+    }
     // std::cout << "storeName: " << storeName << std::endl;
     // std::cout << "storeAddress: " << storeAddress << std::endl;
     // std::cout << "itemsJson: " << itemsJson << std::endl;
@@ -80,7 +85,7 @@ void UploadController::uploadReceipt(const HttpRequestPtr& req,
     // get store_id
     dbClient->execSqlAsync(
         "SELECT store_id FROM stores WHERE name = $1 AND address = $2",
-        [dbClient, rawImageFile, itemsJson, callback](const Result& r) {
+        [dbClient, rawImageFile, itemsJson, callback, accountId](const Result& r) {
             if (r.empty()) {
                 errorHandler(callback, "{\"error\":\"Store not found\"}");
                 return;
@@ -90,8 +95,9 @@ void UploadController::uploadReceipt(const HttpRequestPtr& req,
 
             // insert receipt, get receipt_id
             dbClient->execSqlAsync(
-                "INSERT INTO receipts (store_id, raw_image_file) VALUES ($1, $2) RETURNING receipt_id",
-                [dbClient, storeId, itemsJson, callback](const Result& r) {
+                "INSERT INTO receipts (store_id, raw_image_file, user_id) VALUES ($1, $2, $3) RETURNING "
+                "receipt_id",
+                [dbClient, storeId, itemsJson, callback, accountId](const Result& r) {
                     int receiptId = r[0]["receipt_id"].as<int>();
 
                     // parse items and insert each one
@@ -171,7 +177,7 @@ void UploadController::uploadReceipt(const HttpRequestPtr& req,
                     std::cout << "receipt insert error: " << e.base().what() << std::endl;
                     errorHandler(callback, "{\"error\":\"Failed to insert receipt\"}");
                 },
-                storeId, rawImageFile);
+                storeId, rawImageFile, *accountId);
         },
         [callback](const DrogonDbException& e) {
             std::cout << "store lookup error: " << e.base().what() << std::endl;
