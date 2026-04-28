@@ -1,42 +1,69 @@
 #include <drogon/drogon.h>
 #include <filesystem>
+#include <fstream>
 #include <string>
+#include <json/json.h>
 
 using namespace drogon;
+namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {
     // load config
     app().loadConfigFile("config.json");
 
-    // Catch-all route for frontend SPA
+    // Resolve document_root from config for SPA fallback
+    std::string docRoot;
+    {
+        std::ifstream cfgFile("config.json");
+        if (cfgFile.is_open()) {
+            Json::Value cfg;
+            Json::CharReaderBuilder rdr;
+            std::string errs;
+            if (Json::parseFromStream(rdr, cfgFile, &cfg, &errs)) {
+                docRoot = cfg["app"].get("document_root", "").asString();
+            }
+        }
+    }
+
+    // SPA catch-all: serve index.html for any path that isn't an API route
+    // or a real file that exists under document_root.
     app().registerHandler(
-        R"(/(.*))",
-        [](const HttpRequestPtr &req,
-           std::function<void(const HttpResponsePtr &)> &&callback,
-           const std::string &path) {
-            // Check if it's an API route - let it fall through or handle 404 here
-            if (path.find("api/") == 0) {
-                callback(HttpResponse::newNotFoundResponse());
+        "/{path}",
+        [docRoot](const HttpRequestPtr &req,
+                  std::function<void(const HttpResponsePtr &)> &&callback,
+                  const std::string &path) {
+            // Let API routes fall through to their own handlers
+            if (path.rfind("api/", 0) == 0) {
+                auto resp = HttpResponse::newNotFoundResponse();
+                callback(resp);
                 return;
             }
 
-            // Use the document root from the configuration
-            std::string docRoot = app().getDocumentRoot();
-            if (docRoot.empty()) {
-                docRoot = "./";
-            }
-            
-            std::string filePath = docRoot + "/" + path;
-            if (path.empty() || path == "/") {
-                filePath = docRoot + "/index.html";
+            // If the request maps to a real file, let Drogon's static handler
+            // serve it (this handler won't be reached for those anyway, but
+            // guard just in case).
+            fs::path filePath = fs::path(docRoot) / path;
+            if (fs::exists(filePath) && fs::is_regular_file(filePath)) {
+                auto resp = HttpResponse::newNotFoundResponse();
+                callback(resp);
+                return;
             }
 
-            if (std::filesystem::exists(filePath) && !std::filesystem::is_directory(filePath)) {
-                callback(HttpResponse::newFileResponse(filePath));
-            } else {
-                // Fallback to index.html for SPA routing
-                callback(HttpResponse::newFileResponse(docRoot + "/index.html"));
-            }
+            // Fallback: serve index.html so the SPA router takes over
+            auto resp = HttpResponse::newFileResponse(
+                (fs::path(docRoot) / "index.html").string());
+            callback(resp);
+        },
+        {Get});
+
+    // Also handle bare "/" explicitly
+    app().registerHandler(
+        "/",
+        [docRoot](const HttpRequestPtr &req,
+                  std::function<void(const HttpResponsePtr &)> &&callback) {
+            auto resp = HttpResponse::newFileResponse(
+                (fs::path(docRoot) / "index.html").string());
+            callback(resp);
         },
         {Get});
 
