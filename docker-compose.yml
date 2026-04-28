@@ -40,6 +40,7 @@ services:
       PGUSER: grocery_user
       DATABASE_URL: "postgresql://grocery_user:${POSTGRES_PASSWORD:-changeme}@db:5432/grocerygrid"
       INIT_DB: "false"
+      TABSCANNER_API_KEY: ${TABSCANNER_API_KEY}
     secrets:
       - config_json
       - model_json
