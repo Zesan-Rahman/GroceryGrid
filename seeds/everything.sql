@@ -10,3 +10,4 @@
 
 \i 'carts_seed.sql'
 \i 'reports_seed.sql'
+\i 'trader_joe_items.sql'
