@@ -124,7 +124,7 @@ export default function AdminReportEntryPage() {
                 disabled={activeAction !== null}
                 onClick={() => void handleDelete()}
               >
-                {activeAction === "delete" ? "Working..." : "Delete Entry"}
+                {activeAction === "delete" ? "Working..." : "Report is right, remove entry"}
               </button>
               <br />
               <button
@@ -133,7 +133,7 @@ export default function AdminReportEntryPage() {
                 disabled={activeAction !== null}
                 onClick={() => void handleDismiss()}
               >
-                {activeAction === "dismiss" ? "Working..." : "Confirm Accurate"}
+                {activeAction === "dismiss" ? "Working..." : "Report is wrong, price is correct"}
               </button>
             </div>
           </section>
