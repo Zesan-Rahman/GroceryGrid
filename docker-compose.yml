@@ -20,7 +20,8 @@ services:
       timeout: 5s
       retries: 10
 
-  # ─── GroceryGrid backend + static frontend ─────────────────────────────────
+  # ─── Drogon API backend ────────────────────────────────────────────────────
+  # Not exposed to the host — nginx proxies /api/* traffic to port 8080.
   app:
     build:
       context: .
@@ -29,14 +30,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "8080:8080"
+    # No host port binding; only reachable inside the Docker network.
+    expose:
+      - "8080"
     environment:
       PGHOST: db
       PGPORT: 5432
       PGDATABASE: grocerygrid
       PGUSER: grocery_user
-      # Only used by the entrypoint's optional INIT_DB path
       DATABASE_URL: "postgresql://grocery_user:${POSTGRES_PASSWORD:-changeme}@db:5432/grocerygrid"
       INIT_DB: "false"
     secrets:
@@ -45,14 +46,23 @@ services:
     volumes:
       - uploads:/app/uploads
 
+  # ─── nginx (reverse proxy + SPA host) ─────────────────────────────────────
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+
 # ─── Secrets ──────────────────────────────────────────────────────────────────
-# All three files must exist on the host before running `docker compose up`.
-# Add all of them to .gitignore — use the template_* counterparts as references.
 secrets:
   config_json:
-    file: ./config.json # Drogon runtime config  (DB connection, listeners, etc.)
+    file: ./config.json
   model_json:
-    file: ./models/model.json # Drogon ORM model config (DB connection for codegen/runtime)
+    file: ./models/model.json
 
 volumes:
   pgdata_grocery:

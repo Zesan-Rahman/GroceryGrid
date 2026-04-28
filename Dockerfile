@@ -24,17 +24,7 @@ RUN nix-shell /app/shell.nix --run " \
     cmake --build build --parallel \$(nproc) \
     "
 
-# ─── Stage 2: Frontend builder ───────────────────────────────────────────────
-FROM node:20-alpine AS frontend-builder
-
-WORKDIR /frontend
-COPY frontend/package*.json ./
-RUN npm ci
-
-COPY frontend/ ./
-RUN npm run build          # emits to /frontend/dist
-
-# ─── Stage 3: Runtime (NixOS) ────────────────────────────────────────────────
+# ─── Stage 2: Runtime (NixOS) ───────────────────────────────────────────────
 # We stay on a NixOS base so the Nix store paths that the binary was linked
 # against are available at runtime without having to copy every .so manually.
 FROM nixos/nix:latest AS runtime
@@ -58,9 +48,8 @@ COPY config.yaml /app/config.yaml
 # NOTE: config.json is intentionally NOT copied here — it is injected at
 # runtime via Docker secrets and written to /app/config.json by the entrypoint.
 
-# Copy the compiled frontend into the directory Drogon will serve as static files.
-# Adjust the destination path to match the "document_root" in your config.yaml.
-COPY --from=frontend-builder /frontend/dist /app/www
+# NOTE: The frontend is served by the nginx container (nginx/Dockerfile),
+# not by Drogon. No frontend assets are needed in this image.
 
 # Copy DB schema + seeds so the entrypoint script can initialise the DB if needed
 COPY schema/ /app/schema/
@@ -69,6 +58,7 @@ COPY seeds/  /app/seeds/
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 
+# Drogon listens on 8080 (internal only — nginx proxies /api/* to this port)
 EXPOSE 8080
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
