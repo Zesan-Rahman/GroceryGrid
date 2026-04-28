@@ -170,6 +170,12 @@ const UploadReceipts: React.FC = () => {
         setEditingIndex(null);
     };
 
+    //Item removal
+    const handleRemoveItem = (index: number) => {
+        setItems((prev) => prev.filter((_, i) => i !== index));
+        if (editingIndex === index) setEditingIndex(null);
+    };
+
     //Item adding
     const handleAddItem = () => {
         if (!newItemDesc.trim() || !newItemPrice.trim()) return;
@@ -307,7 +313,7 @@ const UploadReceipts: React.FC = () => {
                                     <th>Qty</th>
                                     <th>Unit Price</th>
                                     <th>Total</th>
-                                    <th>Edit</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -354,9 +360,14 @@ const UploadReceipts: React.FC = () => {
                                             </td>
                                             <td>
                                                 {editingIndex !== index && (
-                                                    <button onClick={() => handleEditClick(index)} className="editBtn">
-                                                        Edit
-                                                    </button>
+                                                    <div className="action-btns">
+                                                        <button onClick={() => handleEditClick(index)} className="editBtn">
+                                                            Edit
+                                                        </button>
+                                                        <button onClick={() => handleRemoveItem(index)} className="editBtn">
+                                                            Remove
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </td>
                                         </tr>

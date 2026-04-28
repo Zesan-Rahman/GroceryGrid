@@ -115,7 +115,7 @@
   border: 1px solid var(--border-light);
 }
 
-.addItemRow > span {
+.addItemRow>span {
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-secondary);
