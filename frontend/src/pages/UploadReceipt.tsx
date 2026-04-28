@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./UploadReceipt.css";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-const siteLink = "http://localhost:8080";
+
 
 interface UploadedReceipt {
     file: File;
@@ -122,7 +122,7 @@ const UploadReceipts: React.FC = () => {
         formData.append("images", image.file);
 
         try {
-            const response = await fetch(`${siteLink}/api/upload`, {
+            const response = await fetch(`/api/upload`, {
                 method: "POST",
                 body: formData,
             });
@@ -197,7 +197,7 @@ const UploadReceipts: React.FC = () => {
 
         try {
             const response = await fetch(
-                `${siteLink}/api/stores/search?q=${encodeURIComponent(storeQuery)}`
+                `/api/stores/search?q=${encodeURIComponent(storeQuery)}`
             );
             if (!response.ok) throw new Error("Search failed");
             const data: Store[] = await response.json();
@@ -230,7 +230,7 @@ const UploadReceipts: React.FC = () => {
                 date: scanResult?.date ?? null,
             })));
             formData.append("items", itemsPayload);
-            const response = await fetch(`${siteLink}/api/receipts/upload`, {
+            const response = await fetch(`/api/receipts/upload`, {
                 method: "POST",
                 body: formData,
             });
